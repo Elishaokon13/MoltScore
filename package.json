@@ -6,21 +6,31 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "job": "tsx scripts/runMoltScoreJob.ts",
+    "job:once": "tsx scripts/runMoltScoreJob.ts --once",
+    "db:init": "tsx scripts/initDb.ts"
   },
   "dependencies": {
+    "dotenv": "^17.3.1",
+    "ethers": "^6.16.0",
     "next": "16.1.6",
+    "node-cron": "^4.2.1",
+    "pg": "^8.18.0",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/node-cron": "^3.0.11",
+    "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

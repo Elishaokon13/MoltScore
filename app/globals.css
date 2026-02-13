@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f5f5;
+  --foreground: #202022;
+  --polyclaw-purple: #6650f8;
+  --polyclaw-purple-dark: #5540e0;
+  --polyclaw-green: #22c55e;
+  --polyclaw-green-dim: #4ade80;
+  --polyclaw-header-bg: #1a1a1c;
+  --gradient-purple-blue: linear-gradient(90deg, #6650f8 0%, #3b82f6 100%);
 }
 
 @theme inline {
@@ -12,15 +18,104 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Diagonal stripe pattern for main content */
+.bg-stripe {
+  background-color: #f8f8f8;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 8px,
+    rgba(0, 0, 0, 0.02) 8px,
+    rgba(0, 0, 0, 0.02) 9px
+  );
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker {
+  animation: ticker 30s linear infinite;
+}
+
+/* Edgy primary button: bevel, gradient, inner shadow */
+.btn-edgy-primary {
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  background: linear-gradient(180deg, #7c6cfa 0%, #5540e0 50%, #4a36c7 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(102, 80, 248, 0.3);
+}
+.btn-edgy-primary:hover {
+  background: linear-gradient(180deg, #8b7cfb 0%, #6650f8 50%, #5540e0 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 4px 12px rgba(102, 80, 248, 0.4);
+}
+
+/* Edgy secondary button: sharp border, slight bevel */
+.btn-edgy-secondary {
+  border-radius: 6px;
+  border: 2px solid #374151;
+  background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.btn-edgy-secondary:hover {
+  border-color: #1f2937;
+  background: linear-gradient(180deg, #f9fafb 0%, #e5e7eb 100%);
+}
+
+/* Gamified score numbers */
+.score-num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.score-num-green {
+  color: #16a34a;
+  text-shadow: 0 0 12px rgba(34, 197, 94, 0.35);
+}
+
+/* Achievement-style rank badge */
+.badge-rank {
+  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Live indicator pulse */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+  50% { opacity: 0.9; box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+}
+.live-dot {
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+/* Hide scrollbar but keep content scrollable */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
