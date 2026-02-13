@@ -52,7 +52,7 @@ export async function runMoltScoreLoop(): Promise<void> {
       }
     }
 
-    setScored(scoredList);
+    await setScored(scoredList);
     console.info(LOG, "scored", { total: scoredList.length });
 
     const candidates = scoredList
@@ -69,7 +69,7 @@ export async function runMoltScoreLoop(): Promise<void> {
       }
     }
 
-    const cache = getCache();
+    const cache = await getCache();
     console.info(LOG, "run done", {
       discovered: cache.discovered.length,
       scored: cache.scored.length,

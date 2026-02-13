@@ -7,6 +7,6 @@ import { setDiscovered } from "@/lib/cache";
 
 export async function discoverAgents(limit = 50) {
   const agents = await crawlDiscover(limit);
-  setDiscovered(agents);
+  await setDiscovered(agents);
   return agents;
 }

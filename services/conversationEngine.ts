@@ -62,14 +62,14 @@ function sleep(ms: number): Promise<void> {
 /**
  * Apply reply rules; returns skip reason or null if we should reply.
  */
-function getSkipReason(username: string, scored: ScoredAgent): string | null {
+async function getSkipReason(username: string, scored: ScoredAgent): Promise<string | null> {
   if (scored.lastPostAt == null) return "no post time";
   if (Date.now() - scored.lastPostAt > POSTED_WITHIN_MS) return "posted more than 6 hours ago";
-  if (!canReplyTo(username)) return "replied in last 24h";
+  if (!(await canReplyTo(username))) return "replied in last 24h";
   if (scored.tasksCompleted < 1) return "no completed tasks";
   if (scored.completionRate === 0) return "completion rate 0";
   if (scored.score < 600) return "score below 600";
-  if (!isUnderDailyReplyCap()) return "daily reply cap reached";
+  if (!(await isUnderDailyReplyCap())) return "daily reply cap reached";
   return null;
 }
 
@@ -78,7 +78,7 @@ function getSkipReason(username: string, scored: ScoredAgent): string | null {
  * Skips with "Skipping {username} — reason" when rules fail. Random delay 2–5s before sending.
  */
 export async function replyWithScore(username: string, scored: ScoredAgent): Promise<boolean> {
-  const reason = getSkipReason(username, scored);
+  const reason = await getSkipReason(username, scored);
   if (reason != null) {
     console.info(LOG, "Skipping", username, "—", reason);
     return false;
@@ -107,7 +107,7 @@ export async function replyWithScore(username: string, scored: ScoredAgent): Pro
     const data = (await res.json()) as { success?: boolean; error?: string };
 
     if (res.ok && data.success) {
-      markReplied(username);
+      await markReplied(username);
       console.info(LOG, "replied", { username, score: scored.score });
       return true;
     }
@@ -203,7 +203,7 @@ export async function parseWalletReplies(): Promise<void> {
       for (const raw of matches) {
         if (!ethers.isAddress(raw)) continue;
         const wallet = ethers.getAddress(raw);
-        updateDiscoveredAgentWallet(author, wallet);
+        await updateDiscoveredAgentWallet(author, wallet);
         console.info(LOG, "wallet updated from reply", { username: author, wallet: wallet.slice(0, 10) + "..." });
         break;
       }

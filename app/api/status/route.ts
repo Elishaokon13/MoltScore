@@ -1,6 +1,6 @@
 /**
- * GET /api/status — monitoring stats from cache only.
- * No heavy computation; read from cache (or DB when migrated).
+ * GET /api/status — monitoring stats from cache/DB only.
+ * No heavy computation; read from Postgres and in-memory state.
  */
 
 import { getCache, getReplyCountInLast24h } from "@/lib/cache";
@@ -10,14 +10,14 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const cache = getCache();
+    const [cache, repliesLast24h] = await Promise.all([getCache(), getReplyCountInLast24h()]);
 
     return NextResponse.json({
       lastUpdated: cache.lastUpdated,
       discoveredCount: cache.discovered.length,
       scoredCount: cache.scored.length,
       lastProcessedBlock: cache.lastProcessedBlockByContract,
-      repliesLast24h: getReplyCountInLast24h(),
+      repliesLast24h,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";

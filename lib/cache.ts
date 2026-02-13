@@ -189,6 +189,19 @@ export async function getTopScored(limit: number): Promise<ScoredAgent[]> {
   }
 }
 
+/** Last time scored_agents was updated (ms). For API lastUpdated. */
+export async function getLastUpdated(): Promise<number> {
+  try {
+    const res = await pool.query(
+      `SELECT COALESCE(EXTRACT(EPOCH FROM MAX(updated_at)) * 1000, 0)::bigint AS ms FROM scored_agents`
+    );
+    return Number(res.rows[0]?.ms ?? 0);
+  } catch (e) {
+    console.warn(LOG, "getLastUpdated error", { error: String(e) });
+    return 0;
+  }
+}
+
 export async function markReplied(username: string): Promise<void> {
   try {
     await pool.query(
