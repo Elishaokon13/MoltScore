@@ -27,7 +27,8 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-const REQUEST_DELAY_MS = 800;
+const REQUEST_DELAY_MS = 2000; // 2s between profile calls to avoid 429
+const RATE_LIMIT_BACKOFF_MS = 60_000; // wait 1 min on 429 then retry once
 
 /** Parse post date from common API fields; returns ms or 0 if missing/invalid. */
 function parsePostTime(post: { created_at?: string; createdAt?: string | number }): number {
@@ -42,6 +43,8 @@ export interface RecentPostsResult {
   usernames: string[];
   /** author -> most recent post timestamp (ms). */
   lastPostAtByAuthor: Record<string, number>;
+  /** author -> number of posts in this feed batch (activity signal). */
+  postCountByAuthor: Record<string, number>;
 }
 
 /**
@@ -65,11 +68,13 @@ export async function fetchRecentPosts(limit = 50): Promise<RecentPostsResult> {
 
   const usernames = new Set<string>();
   const lastPostAtByAuthor: Record<string, number> = {};
+  const postCountByAuthor: Record<string, number> = {};
   for (const post of data.posts ?? []) {
     const name = post.author?.name;
     if (name && typeof name === "string") {
       const author = name.trim();
       usernames.add(author);
+      postCountByAuthor[author] = (postCountByAuthor[author] ?? 0) + 1;
       const ts = parsePostTime(post);
       if (ts > 0 && (lastPostAtByAuthor[author] == null || ts > lastPostAtByAuthor[author])) {
         lastPostAtByAuthor[author] = ts;
@@ -78,12 +83,12 @@ export async function fetchRecentPosts(limit = 50): Promise<RecentPostsResult> {
   }
 
   console.info(LOG, "fetchRecentPosts done", { count: usernames.size });
-  return { usernames: Array.from(usernames), lastPostAtByAuthor };
+  return { usernames: Array.from(usernames), lastPostAtByAuthor, postCountByAuthor };
 }
 
 /**
  * GET /agents/profile?name={username} — extract wallet if available.
- * Moltbook API uses query param, not path.
+ * On 429, backs off then retries once; then returns agent without wallet.
  */
 export async function fetchProfile(username: string): Promise<DiscoveredAgent> {
   const url = `${getBaseUrl()}/agents/profile?name=${encodeURIComponent(username)}`;
@@ -91,15 +96,26 @@ export async function fetchProfile(username: string): Promise<DiscoveredAgent> {
 
   await sleep(REQUEST_DELAY_MS);
 
-  const res = await fetch(url, { headers: authHeaders() });
-  const data = (await res.json()) as {
-    success?: boolean;
-    agent?: { name?: string; wallet?: string };
-    error?: string;
-  };
+  const doFetch = async (): Promise<Response> => fetch(url, { headers: authHeaders() });
+
+  let res = await doFetch();
+
+  if (res.status === 429) {
+    console.warn(LOG, "rate limited (429), backing off", { backoffSec: RATE_LIMIT_BACKOFF_MS / 1000 });
+    await sleep(RATE_LIMIT_BACKOFF_MS);
+    res = await doFetch();
+  }
+
+  let data: { success?: boolean; agent?: { name?: string; wallet?: string }; error?: string };
+  try {
+    const text = await res.text();
+    data = text.startsWith("{") ? (JSON.parse(text) as typeof data) : {};
+  } catch {
+    data = {};
+  }
 
   if (!res.ok) {
-    console.warn(LOG, "fetchProfile failed", { username, status: res.status });
+    console.warn(LOG, "fetchProfile failed", { username, status: res.status, error: data.error });
     return { username };
   }
 
@@ -111,7 +127,7 @@ export async function fetchProfile(username: string): Promise<DiscoveredAgent> {
  * Crawl feed, fetch profiles with rate limiting, deduplicate. Sets lastPostAt from feed when available.
  */
 export async function discoverAgents(limit = 50): Promise<DiscoveredAgent[]> {
-  const { usernames, lastPostAtByAuthor } = await fetchRecentPosts(limit);
+  const { usernames, lastPostAtByAuthor, postCountByAuthor } = await fetchRecentPosts(limit);
   const seen = new Set<string>();
   const agents: DiscoveredAgent[] = [];
 
@@ -119,13 +135,15 @@ export async function discoverAgents(limit = 50): Promise<DiscoveredAgent[]> {
     if (seen.has(name)) continue;
     seen.add(name);
     const lastPostAt = lastPostAtByAuthor[name];
+    const postCountInFeed = postCountByAuthor[name];
     try {
       const agent = await fetchProfile(name);
       if (lastPostAt != null) agent.lastPostAt = lastPostAt;
+      if (postCountInFeed != null) agent.postCountInFeed = postCountInFeed;
       agents.push(agent);
     } catch (e) {
       console.warn(LOG, "fetchProfile error", { username: name, error: String(e) });
-      agents.push({ username: name, lastPostAt });
+      agents.push({ username: name, lastPostAt, postCountInFeed });
     }
   }
 

@@ -160,7 +160,7 @@ export async function requestWalletFromAgent(username: string): Promise<boolean>
   }
 }
 
-/** Fetch replies to our posts. Assumes Moltbook API: our posts then replies per post. */
+/** Fetch replies to our posts. Assumes Moltbook API: our posts then replies per post. Returns [] if API returns HTML or unsupported. */
 async function fetchRepliesToOurPosts(): Promise<{ author: string; content: string }[]> {
   const base = getBaseUrl();
   const headers = {
@@ -169,17 +169,31 @@ async function fetchRepliesToOurPosts(): Promise<{ author: string; content: stri
   };
 
   const postsRes = await fetch(`${base}/posts?mine=1`, { headers });
-  const postsData = (await postsRes.json()) as { success?: boolean; posts?: { id: string }[]; error?: string };
+  const contentType = postsRes.headers.get("content-type") ?? "";
+  const text = await postsRes.text();
+  if (!contentType.includes("application/json") || !text.trim().startsWith("{")) {
+    console.info(LOG, "replies API returned non-JSON (endpoint may not exist or auth required), skipping");
+    return [];
+  }
+  let postsData: { success?: boolean; posts?: { id: string }[]; error?: string };
+  try {
+    postsData = JSON.parse(text) as typeof postsData;
+  } catch {
+    return [];
+  }
   if (!postsRes.ok || !postsData.posts?.length) return [];
 
   const replies: { author: string; content: string }[] = [];
   for (const post of postsData.posts.slice(0, 20)) {
     const replyRes = await fetch(`${base}/posts/${post.id}/replies`, { headers });
-    const replyData = (await replyRes.json()) as {
-      success?: boolean;
-      replies?: { author?: { name?: string }; content?: string }[];
-      error?: string;
-    };
+    const replyText = await replyRes.text();
+    if (!replyText.trim().startsWith("{")) continue;
+    let replyData: { success?: boolean; replies?: { author?: { name?: string }; content?: string }[] };
+    try {
+      replyData = JSON.parse(replyText) as typeof replyData;
+    } catch {
+      continue;
+    }
     if (!replyRes.ok || !replyData.replies) continue;
     for (const r of replyData.replies) {
       const author = typeof r.author?.name === "string" ? r.author.name.trim() : "";

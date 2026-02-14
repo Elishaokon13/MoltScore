@@ -1,10 +1,10 @@
 /**
- * MoltScore — Mock agent data.
- * Structure prepared for future API integration.
+ * MoltScore — Mock agent data + API leaderboard integration.
  */
 
 import { computeScore, getTierFromScore, getCompletionRatePercent } from "./score";
 import type { RiskTier } from "./score";
+import type { ScoredAgent } from "./types";
 
 export interface AgentRaw {
   id: string;
@@ -48,6 +48,34 @@ function shortWallet(addr: string): string {
 
 export function getShortWallet(addr: string): string {
   return shortWallet(addr);
+}
+
+const RISK_TIERS: RiskTier[] = ["AAA", "AA", "A", "BBB", "BB", "Risk Watch"];
+
+/** Map API leaderboard agent (ScoredAgent) to table row with rank. */
+export function scoredAgentToAgentWithRank(agent: ScoredAgent, rank: number): AgentWithRank {
+  const tier = RISK_TIERS.includes(agent.tier as RiskTier) ? (agent.tier as RiskTier) : "Risk Watch";
+  const name = agent.username ?? (agent.wallet ? shortWallet(agent.wallet) : "—");
+  const id = agent.username ?? agent.wallet ?? String(rank);
+  return {
+    rank,
+    id,
+    name,
+    avatar: null,
+    walletAddress: agent.wallet,
+    shortWallet: shortWallet(agent.wallet),
+    tasksCompleted: agent.tasksCompleted,
+    tasksFailed: agent.tasksFailed,
+    disputes: agent.disputes,
+    slashes: agent.slashes,
+    ageDays: agent.ageDays,
+    profitEth: 0,
+    lastScore: agent.score,
+    currentScore: agent.score,
+    tier,
+    completionPercent: Math.round(agent.completionRate * 100),
+    scoreDelta: 0,
+  };
 }
 
 /** Raw seed data: lastScore/currentScore are placeholders; we compute currentScore from formula. */

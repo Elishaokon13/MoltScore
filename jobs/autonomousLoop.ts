@@ -6,8 +6,9 @@
 import cron from "node-cron";
 import { discoverAgents } from "@/services/agentDiscovery";
 import { getAgentMetrics } from "@/services/agentMetrics";
-import { calculateScore } from "@/services/scoringEngine";
+import { calculateScore, calculateActivityScore, getTier } from "@/services/scoringEngine";
 import { replyWithScore, parseWalletReplies, requestWalletFromAgent } from "@/services/conversationEngine";
+import { fetchMoltCourtLeaderboard, reputationToBonus } from "@/services/moltcourt";
 import { setScored, getCache, hasAskedForWallet } from "@/lib/cache";
 import type { ScoredAgent } from "@/lib/types";
 
@@ -33,11 +34,6 @@ export async function runMoltScoreLoop(): Promise<void> {
 
     const withWallet = agents.filter((a): a is typeof a & { wallet: string } => Boolean(a.wallet));
 
-    if (withWallet.length === 0) {
-      console.info(LOG, "no agents with wallets, skipping metrics");
-      return;
-    }
-
     const scoredList: ScoredAgent[] = [];
 
     for (const agent of withWallet) {
@@ -52,6 +48,28 @@ export async function runMoltScoreLoop(): Promise<void> {
       }
     }
 
+    for (const agent of agents.filter((a) => !a.wallet)) {
+      try {
+        const scored = calculateActivityScore(agent);
+        scoredList.push(scored);
+      } catch (e) {
+        console.warn(LOG, "activity score failed", { username: agent.username, error: String(e) });
+      }
+    }
+
+    const moltcourtMap = await fetchMoltCourtLeaderboard();
+    const DEBATE_BONUS_CAP = 40;
+    for (const s of scoredList) {
+      const key = (s.username ?? "").toLowerCase();
+      const entry = moltcourtMap.get(key);
+      if (entry) {
+        const bonus = reputationToBonus(entry.reputation, DEBATE_BONUS_CAP);
+        s.score = Math.min(950, s.score + bonus);
+      }
+      s.tier = getTier(s.score);
+    }
+
+    scoredList.sort((a, b) => b.score - a.score);
     await setScored(scoredList);
     console.info(LOG, "scored", { total: scoredList.length });
 

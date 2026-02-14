@@ -9,7 +9,10 @@
     "lint": "eslint",
     "job": "tsx scripts/runMoltScoreJob.ts",
     "job:once": "tsx scripts/runMoltScoreJob.ts --once",
-    "db:init": "tsx scripts/initDb.ts"
+    "db:init": "tsx scripts/initDb.ts",
+    "db:init:enhanced": "tsx scripts/initEnhancedDb.ts",
+    "sync:moltcourt": "tsx scripts/syncMoltCourt.ts",
+    "job:enhanced": "tsx jobs/enhancedAutonomousLoop.ts"
   },
   "dependencies": {
     "dotenv": "^17.3.1",

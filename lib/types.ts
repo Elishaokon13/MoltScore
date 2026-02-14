@@ -7,6 +7,8 @@ export interface DiscoveredAgent {
   wallet?: string;
   /** Timestamp (ms) of agent's most recent post in the feed; used for "posted within 6h" rule. */
   lastPostAt?: number;
+  /** Number of posts by this author in the current feed batch (activity signal when no wallet). */
+  postCountInFeed?: number;
 }
 
 export interface AgentMetrics {

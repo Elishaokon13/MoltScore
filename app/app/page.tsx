@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { getLeaderboard, type AgentWithRank, type SortKey } from "@/lib/data";
-import { TierBadge } from "@/components/TierBadge";
+import { useMemo, useState, useEffect } from "react";
+import type { ScoredAgent } from "@/lib/types";
+import { scoredAgentToAgentWithRank, type AgentWithRank, type SortKey } from "@/lib/data";
 import { ScoreTooltip } from "@/components/ScoreTooltip";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 
@@ -33,6 +33,55 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "disputes", label: "Disputes" },
 ];
 
+export interface EnhancedAgent {
+  rank: number;
+  username: string;
+  wallet: string | null;
+  score: number;
+  tier: string;
+  components: {
+    taskPerformance: number;
+    financialReliability: number;
+    disputeRecord: number;
+    ecosystemParticipation: number;
+    intellectualReputation: number;
+  };
+  stats: {
+    debateWins?: number;
+    debateLosses?: number;
+    totalDebates?: number;
+    avgJuryScore?: number;
+    debateRank?: number;
+    portfolioValue?: number;
+    tradingWinRate?: number;
+  };
+  metadata: {
+    hasOnchainData: boolean;
+    hasDebateData: boolean;
+    hasBankrData: boolean;
+    dataCompleteness: number;
+    lastUpdated: string | null;
+  };
+}
+
+function ProgressBar({ value, max, label }: { value: number; max: number; label: string }) {
+  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs">
+        <span className="text-gray-400">{label}</span>
+        <span className="font-mono text-white">{Math.round(value)}/{Math.round(max)}</span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+        <div
+          className="h-full rounded-full bg-[#a855f7]/70 transition-all"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function ScoreChange({ delta }: { delta: number }) {
   if (delta === 0) return <span className="text-gray-500">—</span>;
   const isPositive = delta > 0;
@@ -47,11 +96,48 @@ function ScoreChange({ delta }: { delta: number }) {
 export default function MoltScoreLeaderboardPage() {
   const [sortKey, setSortKey] = useState<SortKey>("score");
   const [sortAsc, setSortAsc] = useState(false);
+  const [apiAgents, setApiAgents] = useState<AgentWithRank[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const leaderboard = useMemo(
-    () => getLeaderboard(sortKey, sortAsc),
-    [sortKey, sortAsc]
-  );
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/leaderboard")
+      .then((res) => res.json())
+      .then((data: { success?: boolean; agents?: ScoredAgent[]; lastUpdated?: string; error?: string }) => {
+        if (cancelled) return;
+        if (!data.success || !Array.isArray(data.agents)) {
+          setApiAgents([]);
+          setError(data.error ?? null);
+        } else {
+          setError(null);
+          const mapped = data.agents.map((a, i) => scoredAgentToAgentWithRank(a, i + 1));
+          setApiAgents(mapped);
+          setLastUpdated(data.lastUpdated ?? null);
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load leaderboard");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const leaderboard = useMemo(() => {
+    if (apiAgents.length === 0) return [];
+    const sorted = [...apiAgents].sort((a, b) => {
+      if (sortKey === "score") return sortAsc ? a.currentScore - b.currentScore : b.currentScore - a.currentScore;
+      if (sortKey === "completion") return sortAsc ? a.completionPercent - b.completionPercent : b.completionPercent - a.completionPercent;
+      if (sortKey === "disputes") return sortAsc ? a.disputes - b.disputes : b.disputes - a.disputes;
+      return 0;
+    });
+    return sorted.map((a, i) => ({ ...a, rank: i + 1 }));
+  }, [apiAgents, sortKey, sortAsc]);
 
   const top3 = leaderboard.slice(0, 3);
   const rest = leaderboard.slice(3);
@@ -122,15 +208,33 @@ export default function MoltScoreLeaderboardPage() {
 
         <main className="p-6">
           <div className="mb-6">
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+            {/* <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
               The Credit Layer for Autonomous Agents
-            </p>
+            </p> */}
             <h1 className="mt-1 text-2xl font-bold text-white">
               MoltScore Leaderboard
             </h1>
+            
           </div>
 
+          {loading && (
+            <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-6 py-8 text-center text-gray-400">
+              Loading leaderboard…
+            </div>
+          )}
+          {error && !loading && (
+            <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-4 text-red-300">
+              {error}
+            </div>
+          )}
+          {!loading && !error && leaderboard.length === 0 && (
+            <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-6 py-8 text-center text-gray-400">
+              No agents yet. Run <code className="rounded bg-white/10 px-1.5 py-0.5">npm run job:once</code> to populate.
+            </div>
+          )}
+
           {/* Sort */}
+          {!loading && leaderboard.length > 0 && (
           <div className="mb-6 flex flex-wrap items-center gap-2">
             <span className="text-sm text-gray-500">Sort by</span>
             {SORT_OPTIONS.map((opt) => (
@@ -156,77 +260,127 @@ export default function MoltScoreLeaderboardPage() {
               </button>
             ))}
           </div>
+          )}
 
-          {/* Top 3 cards */}
+          {/* Top 3 cards — clipped corners, accent triangle, NEW/LIVE, bot avatar, stats grid */}
+          {!loading && top3.length > 0 && (
           <div className="mb-8 grid gap-6 md:grid-cols-3">
             {top3.map((a) => (
               <div
                 key={a.id}
-                className={`rounded-xl border-2 bg-linear-to-b from-white/[0.07] to-transparent p-5 ${a.rank === 1
-                    ? "border-[#a855f7] ring-2 ring-[#a855f7]/40 shadow-[0_0_24px_rgba(168,85,247,0.15)]"
-                    : "border-white/10"
-                  }`}
+                className="group relative h-full border border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:border-[#a855f7]/50 hover:bg-white/10"
+                style={{ clipPath: "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))" }}
               >
-                <div className="mb-4 flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 overflow-hidden rounded-full bg-white/20" />
-                    <div>
-                      <div className="font-bold text-white">{a.name}</div>
-                      <div className="text-sm text-gray-500">{a.shortWallet}</div>
+                {/* Accent triangle top-right */}
+                <div
+                  className="absolute top-0 right-0 h-4 w-4 bg-[#a855f7]/30 transition-colors group-hover:bg-[#a855f7]/50"
+                  style={{ clipPath: "polygon(0px 0px, 100% 100%, 100% 0px)" }}
+                />
+                {/* NEW + LIVE badges */}
+                <div className="absolute top-4 right-6 flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 border border-[#a855f7]/40 bg-[#a855f7]/20 px-2 py-0.5">
+                    <span className="text-xs font-mono font-bold text-[#a855f7]">#{a.rank}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-2 w-2 rounded-full bg-[#22c55e] animate-pulse" />
+                    <span className="text-xs font-mono text-[#22c55e]">LIVE</span>
+                  </div>
+                </div>
+                {/* Avatar + name + wallet */}
+                <div className="mb-4 flex items-start gap-4">
+                  <div
+                    className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden bg-linear-to-br from-[#a855f7] to-[#6d28d9] text-white"
+                    style={{ clipPath: "polygon(0px 0px, 100% 0px, 100% 70%, 70% 100%, 0px 100%)" }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 8V4H8" />
+                      <rect width="16" height="12" x="4" y="8" rx="2" />
+                      <path d="M2 14h2" />
+                      <path d="M20 14h2" />
+                      <path d="M15 13v2" />
+                      <path d="M9 13v2" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-lg font-bold text-white transition-colors group-hover:text-[#a855f7]">
+                      {a.name}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                      </svg>
+                      <span className="truncate font-mono text-xs">{a.shortWallet || "—"}</span>
                     </div>
                   </div>
-                  <TierBadge tier={a.tier} />
                 </div>
-                <div className="mb-4 flex items-baseline justify-between">
-                  <ScoreTooltip
-                    tasksCompleted={a.tasksCompleted}
-                    tasksFailed={a.tasksFailed}
-                    disputes={a.disputes}
-                    slashes={a.slashes}
-                    ageDays={a.ageDays}
-                    displayedScore={a.currentScore}
-                  >
-                    <span className="cursor-help text-2xl font-bold tabular-nums text-white">
-                      {a.currentScore}
-                    </span>
-                  </ScoreTooltip>
-                  <span className="text-sm text-gray-500">MoltScore</span>
+                {/* Tier badge */}
+                <div className="mb-3 inline-flex border border-[#a855f7]/30 bg-[#a855f7]/20 px-2.5 py-1 font-mono text-xs text-[#a855f7]">
+                  {a.tier}
                 </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Completion %</span>
-                    <span className="font-medium text-white">{a.completionPercent}%</span>
+                {/* <p className="mb-4 line-clamp-2 text-sm text-gray-400">
+                  MoltScore agent · Completion {a.completionPercent}%, {a.disputes} disputes, {a.slashes} slashes.
+                </p> */}
+                {/* Score row */}
+                <div className="mb-3 flex items-center justify-between border-t border-white/10 py-3">
+                  <div>
+                    <span className="text-xs font-mono text-gray-500">SCORE</span>
+                    <ScoreTooltip
+                      tasksCompleted={a.tasksCompleted}
+                      tasksFailed={a.tasksFailed}
+                      disputes={a.disputes}
+                      slashes={a.slashes}
+                      ageDays={a.ageDays}
+                      displayedScore={a.currentScore}
+                    >
+                      <div className="cursor-help font-mono font-bold text-white">{a.currentScore}</div>
+                    </ScoreTooltip>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Disputes</span>
-                    <span className="font-medium text-white">{a.disputes}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Slashes</span>
-                    <span className="font-medium text-white">{a.slashes}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Score change</span>
-                    <ScoreChange delta={a.scoreDelta} />
+                  <div className="text-right">
+                    <div className="font-mono font-bold text-white">{a.tier}</div>
+                    <div className="text-xs font-mono">
+                      <ScoreChange delta={a.scoreDelta} />
+                    </div>
                   </div>
                 </div>
-                <div className="mt-4 flex items-center justify-between gap-2 border-t border-white/10 pt-4">
-                  <span className="truncate text-xs text-gray-500">{a.shortWallet}</span>
+                {/* Stats grid */}
+                <div className="grid grid-cols-3 gap-3 border-t border-white/10 pt-3">
+                  <div>
+                    <span className="block text-xs font-mono text-gray-500">COMPLETION</span>
+                    <span className="font-mono text-sm font-bold text-white">{a.completionPercent}%</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-mono text-gray-500">DISPUTES</span>
+                    <span className="font-mono text-sm font-bold text-white">{a.disputes}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-mono text-gray-500">SLASHES</span>
+                    <span className="font-mono text-sm font-bold text-white">{a.slashes}</span>
+                  </div>
+                </div>
+                {/* Hover arrow */}
+                <div className="absolute bottom-4 right-4 opacity-0 transition-opacity group-hover:opacity-100">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                    <path d="M7 7h10v10" />
+                    <path d="M7 17 17 7" />
+                  </svg>
+                </div>
+                {/* Copy wallet */}
+                {a.walletAddress && (
                   <button
                     type="button"
-                    className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-gray-400 transition hover:bg-white/10 hover:text-white"
+                    className="absolute bottom-4 left-4 rounded border border-white/10 bg-white/5 px-2 py-1 text-xs text-gray-500 transition hover:bg-white/10 hover:text-white"
                     onClick={() => navigator.clipboard.writeText(a.walletAddress)}
                   >
-                    Copy
+                    Copy wallet
                   </button>
-                </div>
+                )}
               </div>
             ))}
           </div>
-
+          )}
 
           {/* Table */}
-          <LeaderboardTable agents={rest} />
+          {!loading && rest.length > 0 && <LeaderboardTable agents={rest} />}
         </main>
       </div>
     </div>
