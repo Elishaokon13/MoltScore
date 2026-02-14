@@ -93,13 +93,20 @@ function ScoreChange({ delta }: { delta: number }) {
   );
 }
 
+type ViewMode = "standard" | "enhanced";
+
 export default function MoltScoreLeaderboardPage() {
+  const [viewMode, setViewMode] = useState<ViewMode>("standard");
   const [sortKey, setSortKey] = useState<SortKey>("score");
   const [sortAsc, setSortAsc] = useState(false);
   const [apiAgents, setApiAgents] = useState<AgentWithRank[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [enhancedAgents, setEnhancedAgents] = useState<EnhancedAgent[]>([]);
+  const [enhancedLoading, setEnhancedLoading] = useState(false);
+  const [enhancedError, setEnhancedError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -127,6 +134,39 @@ export default function MoltScoreLeaderboardPage() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (viewMode !== "enhanced") return;
+    let cancelled = false;
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        setEnhancedLoading(true);
+        setEnhancedError(null);
+      }
+    }, 0);
+    fetch("/api/leaderboard/enhanced")
+      .then((res) => res.json())
+      .then((data: { success?: boolean; agents?: EnhancedAgent[]; error?: string }) => {
+        if (cancelled) return;
+        if (!data.success || !Array.isArray(data.agents)) {
+          setEnhancedAgents([]);
+          setEnhancedError(data.error ?? "Failed to load enhanced leaderboard");
+        } else {
+          setEnhancedAgents(data.agents);
+          setEnhancedError(null);
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) setEnhancedError(e instanceof Error ? e.message : "Failed to load");
+      })
+      .finally(() => {
+        if (!cancelled) setEnhancedLoading(false);
+      });
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [viewMode]);
 
   const leaderboard = useMemo(() => {
     if (apiAgents.length === 0) return [];
@@ -207,16 +247,141 @@ export default function MoltScoreLeaderboardPage() {
         </header>
 
         <main className="p-6">
-          <div className="mb-6">
-            {/* <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-              The Credit Layer for Autonomous Agents
-            </p> */}
+          <div className="mb-6 flex flex-wrap items-center gap-4">
             <h1 className="mt-1 text-2xl font-bold text-white">
               MoltScore Leaderboard
             </h1>
-            
+            {viewMode === "standard" && lastUpdated && (
+              <span className="text-xs text-gray-500">
+                Updated {new Date(lastUpdated).toLocaleString()}
+              </span>
+            )}
+            <div className="flex rounded-lg border border-white/10 bg-white/5 p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode("standard")}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${viewMode === "standard" ? "bg-[#a855f7]/30 text-white" : "text-gray-400 hover:text-white"}`}
+              >
+                Standard
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("enhanced")}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${viewMode === "enhanced" ? "bg-[#a855f7]/30 text-white" : "text-gray-400 hover:text-white"}`}
+              >
+                360° Enhanced
+              </button>
+            </div>
           </div>
 
+          {viewMode === "enhanced" && (
+            <>
+              {enhancedLoading && (
+                <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-6 py-8 text-center text-gray-400">
+                  Loading enhanced leaderboard…
+                </div>
+              )}
+              {enhancedError && !enhancedLoading && (
+                <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-4 text-red-300">
+                  {enhancedError}
+                </div>
+              )}
+              {!enhancedLoading && !enhancedError && enhancedAgents.length === 0 && (
+                <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-6 py-8 text-center text-gray-400">
+                  No enhanced data yet. Run <code className="rounded bg-white/10 px-1.5 py-0.5">npm run db:init:enhanced</code> and <code className="rounded bg-white/10 px-1.5 py-0.5 ml-1">npm run job:enhanced</code>.
+                </div>
+              )}
+              {!enhancedLoading && !enhancedError && enhancedAgents.length > 0 && (
+                <>
+                  <div className="mb-8 grid gap-6 md:grid-cols-3">
+                    {enhancedAgents.slice(0, 3).map((agent) => (
+                      <div
+                        key={agent.username}
+                        className="group relative border border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:border-[#a855f7]/50 hover:bg-white/10"
+                        style={{ clipPath: "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))" }}
+                      >
+                        <div className="absolute top-4 right-6 flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-xs text-[#a855f7]">#{agent.rank}</span>
+                          {agent.stats.debateRank != null && agent.stats.debateRank <= 10 && (
+                            <span className="rounded bg-purple-500/30 px-1.5 py-0.5 text-xs text-purple-200">
+                              🏆 Top {agent.stats.debateRank} Debater
+                            </span>
+                          )}
+                          {agent.stats.portfolioValue != null && agent.stats.portfolioValue > 10000 && (
+                            <span className="rounded bg-green-500/30 px-1.5 py-0.5 text-xs text-green-200">
+                              💼 ${(agent.stats.portfolioValue / 1000).toFixed(1)}K
+                            </span>
+                          )}
+                          {agent.stats.tradingWinRate != null && agent.stats.tradingWinRate > 0.6 && (
+                            <span className="rounded bg-blue-500/30 px-1.5 py-0.5 text-xs text-blue-200">
+                              📈 {Math.round(agent.stats.tradingWinRate * 100)}% Win
+                            </span>
+                          )}
+                        </div>
+                        <div className="mb-3 flex items-center gap-3">
+                          <div className="h-10 w-10 shrink-0 rounded-lg bg-[#a855f7]/30" />
+                          <div>
+                            <h3 className="font-bold text-white">{agent.username}</h3>
+                            <span className="truncate font-mono text-xs text-gray-500">
+                              {agent.wallet ? `${agent.wallet.slice(0, 6)}...${agent.wallet.slice(-4)}` : "—"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mb-3 inline-flex border border-[#a855f7]/30 bg-[#a855f7]/20 px-2.5 py-1 font-mono text-xs text-[#a855f7]">
+                          {agent.tier}
+                        </div>
+                        <div className="mb-3 flex justify-between border-t border-white/10 py-2">
+                          <span className="text-xs text-gray-500">SCORE</span>
+                          <span className="font-mono font-bold text-white">{agent.score}</span>
+                        </div>
+                        <div className="space-y-2 border-t border-white/10 pt-3">
+                          <ProgressBar value={agent.components.taskPerformance} max={200} label="Tasks" />
+                          <ProgressBar value={agent.components.financialReliability} max={300} label="Financial" />
+                          <ProgressBar value={agent.components.intellectualReputation} max={150} label="Debates" />
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500">
+                          Data: {Math.round((agent.metadata.dataCompleteness ?? 0) * 100)}% complete
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                    <table className="w-full min-w-[700px] text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-white/10 text-gray-400">
+                          <th className="px-4 py-3 font-semibold text-white">#</th>
+                          <th className="px-4 py-3 font-semibold text-white">AGENT</th>
+                          <th className="px-4 py-3 font-semibold text-white">SCORE</th>
+                          <th className="px-4 py-3 font-semibold text-white">TIER</th>
+                          <th className="px-4 py-3 font-semibold text-white">DEBATES</th>
+                          <th className="px-4 py-3 font-semibold text-white">DATA</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {enhancedAgents.slice(3).map((row) => (
+                          <tr key={row.username} className="border-b border-white/5 hover:bg-white/5">
+                            <td className="px-4 py-3 font-mono text-white">{row.rank}</td>
+                            <td className="px-4 py-3 font-medium text-white">{row.username}</td>
+                            <td className="px-4 py-3 font-mono text-white">{row.score}</td>
+                            <td className="px-4 py-3 text-[#a855f7]">{row.tier}</td>
+                            <td className="px-4 py-3 text-gray-400">
+                              {row.stats.totalDebates != null ? `${row.stats.debateWins ?? 0}W / ${row.stats.debateLosses ?? 0}L` : "—"}
+                            </td>
+                            <td className="px-4 py-3 text-gray-400">
+                              {Math.round((row.metadata.dataCompleteness ?? 0) * 100)}%
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {viewMode === "standard" && (
+            <>
           {loading && (
             <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-6 py-8 text-center text-gray-400">
               Loading leaderboard…
@@ -381,6 +546,8 @@ export default function MoltScoreLeaderboardPage() {
 
           {/* Table */}
           {!loading && rest.length > 0 && <LeaderboardTable agents={rest} />}
+            </>
+          )}
         </main>
       </div>
     </div>
