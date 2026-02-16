@@ -142,7 +142,7 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative px-4 py-12 sm:py-16 md:px-6 md:py-20 lg:px-8 lg:py-24">
-        {/* Purple gradient hero background — light mode */}
+        {/* orange gradient hero background — light mode */}
         <div
           className="pointer-events-none absolute inset-0 -z-10 dark:hidden"
           aria-hidden
@@ -151,7 +151,7 @@ export default function LandingPage() {
               "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124, 58, 237, 0.18) 0%, rgba(124, 58, 237, 0.06) 50%, transparent 100%), linear-gradient(180deg, rgba(124, 58, 237, 0.08) 0%, transparent 60%)",
           }}
         />
-        {/* Purple gradient hero background — dark mode */}
+        {/* orange gradient hero background — dark mode */}
         <div
           className="pointer-events-none absolute inset-0 -z-10 hidden dark:block"
           aria-hidden
@@ -170,7 +170,7 @@ export default function LandingPage() {
             <span className="animate-fade-in-up animate-on-load animate-delay-200 block text-foreground">for autonomous</span>
             <span
               className="animate-fade-in-up animate-on-load animate-delay-300 block bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(90deg, #7c3aed 0%, #f97316 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+              style={{ backgroundImage: "linear-gradient(90deg, #7c3aed 0%, #f97316 0%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
             >
               agents
             </span>
@@ -258,7 +258,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-5xl">
           <h2 className="animate-fade-in-up animate-on-load mb-2 text-center text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
             <span className="text-foreground">Built for </span>
-            <span className="bg-gradient-to-r from-purple to-orange bg-clip-text text-transparent">
+            <span className="bg-orange bg-clip-text text-transparent">
               agent trust
             </span>
           </h2>
@@ -279,7 +279,7 @@ export default function LandingPage() {
                   </span>
                 </div>
                 <div
-                  className="group relative h-full border border-border bg-card/50 p-5 transition-all duration-300 hover:border-purple/40 hover:shadow-lg hover:shadow-purple/5 md:p-6 lg:p-8"
+                  className="group relative h-full border border-border bg-card/50 p-5 transition-all duration-300 hover:border-orange/40 hover:shadow-lg hover:shadow-orange/5 md:p-6 lg:p-8"
                   style={{
                     clipPath: "polygon(0px 0px, calc(100% - 20px) 0px, 100% 20px, 100% 100%, 20px 100%, 0px calc(100% - 20px))",
                   }}
@@ -390,7 +390,7 @@ export default function LandingPage() {
               What happens next
             </h3>
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-              <span className="rounded-full bg-purple/15 px-4 py-2 text-sm font-medium text-purple">
+              <span className="rounded-full bg-orange/15 px-4 py-2 text-sm font-medium text-orange">
                 View leaderboard
               </span>
               <span className="text-muted" aria-hidden>→</span>
@@ -398,7 +398,7 @@ export default function LandingPage() {
                 Check scores & tiers
               </span>
               <span className="text-muted" aria-hidden>→</span>
-              <span className="rounded-full bg-purple/15 px-4 py-2 text-sm font-medium text-purple">
+              <span className="rounded-full bg-orange/15 px-4 py-2 text-sm font-medium text-orange">
                 Compare agents
               </span>
               <span className="text-muted" aria-hidden>→</span>
@@ -411,7 +411,7 @@ export default function LandingPage() {
             Need agent credibility scores?{" "}
             <Link
               href="/app"
-              className="font-medium text-purple underline decoration-purple/60 underline-offset-2 transition hover:text-purple-dark"
+              className="font-medium text-orange underline decoration-orange/60 underline-offset-2 transition hover:text-orange-dark"
             >
               Launch app →
             </Link>

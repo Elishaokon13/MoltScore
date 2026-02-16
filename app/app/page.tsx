@@ -184,15 +184,15 @@ export default function MoltScoreLeaderboardPage() {
   const rest = leaderboard.slice(3);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-pink-500/20 via-orange-600/30 to-emerald-500/20">
-      <div className="min-h-screen w-full bg-[var(--background)] text-[var(--foreground)]">
-        <header className="flex h-14 items-center justify-between gap-4 border-b border-[var(--border)] px-6">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 text-[var(--foreground)]">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10">
-                <LogoIcon className="h-5 w-5 text-[var(--foreground)]" />
+    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
+      <div className="min-h-screen w-full">
+        <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-background/95 px-4 backdrop-blur-sm sm:gap-4 md:px-6 lg:px-8">
+          <div className="flex items-center gap-4 md:gap-8">
+            <Link href="/" className="flex min-h-[44px] min-w-[44px] items-center gap-2 text-foreground transition-opacity hover:opacity-90">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-purple/20">
+                <LogoIcon className="h-5 w-5 text-purple" />
               </div>
-              <span className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]">
+              <span className="hidden text-sm font-semibold uppercase tracking-wide text-foreground sm:inline">
                 MoltScore
               </span>
             </Link>
@@ -201,9 +201,9 @@ export default function MoltScoreLeaderboardPage() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`rounded-lg px-3 py-2 text-sm font-medium transition ${item.active
-                      ? "bg-[var(--card)] text-[var(--foreground)] ring-1 ring-orange-500/50"
-                      : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                  className={`min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${item.active
+                      ? "bg-card text-foreground ring-1 ring-purple/50"
+                      : "text-muted hover:text-foreground"
                     }`}
                 >
                   {item.label}
@@ -211,20 +211,20 @@ export default function MoltScoreLeaderboardPage() {
               ))}
             </nav>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <div className="flex h-9 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] pl-3 pr-2 text-[var(--muted)]">
+            <div className="hidden h-9 items-center gap-2 rounded-lg border border-border bg-card pl-3 pr-2 text-muted sm:flex">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <span className="w-24 text-sm">Search...</span>
-              <kbd className="rounded border border-[var(--border)] bg-[var(--card)] px-1.5 py-0.5 text-xs">Ctrl K</kbd>
+              <kbd className="rounded border border-border bg-background px-1.5 py-0.5 text-xs">Ctrl K</kbd>
             </div>
             <button
               type="button"
-              className="group relative flex items-center gap-3 bg-[var(--orange)] px-8 py-4 text-lg font-bold text-white transition-all duration-300 hover:bg-[var(--orange-dark)]"
+              className="group relative flex min-h-[44px] items-center gap-2 bg-purple px-5 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-purple-dark active:scale-[0.98] md:gap-3 md:px-6 md:py-3 md:text-base"
               style={{
-                clipPath: "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))",
+                clipPath: "polygon(0px 0px, calc(100% - 12px) 0px, 100% 12px, 100% 100%, 12px 100%, 0px calc(100% - 12px))",
               }}
             >
               <span>Connect</span>
@@ -238,7 +238,7 @@ export default function MoltScoreLeaderboardPage() {
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-5 w-5 transition-transform group-hover:translate-x-1"
+                className="h-4 w-4 transition-transform group-hover:translate-x-1 md:h-5 md:w-5"
               >
                 <path d="M5 12h14" />
                 <path d="m12 5 7 7-7 7" />
@@ -248,28 +248,28 @@ export default function MoltScoreLeaderboardPage() {
           </div>
         </header>
 
-        <main className="p-6">
-          <div className="mb-6 flex flex-wrap items-center gap-4">
-            <h1 className="mt-1 text-2xl font-bold text-[var(--foreground)]">
+        <main className="p-4 sm:p-6 md:p-8">
+          <div className="mb-6 flex flex-wrap items-center gap-3 sm:gap-4">
+            <h1 className="animate-fade-in-up animate-on-load mt-1 text-xl font-bold tracking-tight text-foreground sm:text-2xl">
               MoltScore Leaderboard
             </h1>
             {viewMode === "standard" && lastUpdated && (
-              <span className="text-xs text-[var(--muted)]">
+              <span className="text-xs text-muted">
                 Updated {new Date(lastUpdated).toLocaleString()}
               </span>
             )}
-            <div className="flex rounded-lg border border-[var(--border)] bg-[var(--card)] p-0.5">
+            <div className="animate-fade-in-up animate-on-load animate-delay-100 flex rounded-lg border border-border bg-card p-0.5">
               <button
                 type="button"
                 onClick={() => setViewMode("standard")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${viewMode === "standard" ? "bg-[#a855f7]/30 text-[var(--foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`}
+                className={`min-h-[40px] rounded-md px-3 py-2 text-sm font-medium transition-colors sm:py-1.5 ${viewMode === "standard" ? "bg-purple/30 text-foreground" : "text-muted hover:text-foreground"}`}
               >
                 Standard
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("enhanced")}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${viewMode === "enhanced" ? "bg-[#a855f7]/30 text-[var(--foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`}
+                className={`min-h-[40px] rounded-md px-3 py-2 text-sm font-medium transition-colors sm:py-1.5 ${viewMode === "enhanced" ? "bg-purple/30 text-foreground" : "text-muted hover:text-foreground"}`}
               >
                 360° Enhanced
               </button>
@@ -279,28 +279,31 @@ export default function MoltScoreLeaderboardPage() {
           {viewMode === "enhanced" && (
             <>
               {enhancedLoading && (
-                <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--card)] px-6 py-8 text-center text-[var(--muted)]">
+                <div className="animate-fade-in-up animate-on-load mb-6 rounded-xl border border-border bg-card px-4 py-8 text-center text-muted sm:px-6">
                   Loading enhanced leaderboard…
                 </div>
               )}
               {enhancedError && !enhancedLoading && (
-                <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-4 text-red-300">
+                <div className="animate-fade-in-up animate-on-load mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-4 text-red-300 sm:px-6">
                   {enhancedError}
                 </div>
               )}
               {!enhancedLoading && !enhancedError && enhancedAgents.length === 0 && (
-                <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--card)] px-6 py-8 text-center text-[var(--muted)]">
-                  No enhanced data yet. Run <code className="rounded bg-white/10 px-1.5 py-0.5">npm run db:init:enhanced</code> and <code className="rounded bg-white/10 px-1.5 py-0.5 ml-1">npm run job:enhanced</code>.
+                <div className="animate-fade-in-up animate-on-load mb-6 rounded-xl border border-border bg-card px-4 py-8 text-center text-muted sm:px-6">
+                  No enhanced data yet. Run <code className="rounded bg-card px-1.5 py-0.5">npm run db:init:enhanced</code> and <code className="ml-1 rounded bg-card px-1.5 py-0.5">npm run job:enhanced</code>.
                 </div>
               )}
               {!enhancedLoading && !enhancedError && enhancedAgents.length > 0 && (
                 <>
-                  <div className="mb-8 grid gap-6 md:grid-cols-3">
-                    {enhancedAgents.slice(0, 3).map((agent) => (
+                  <div className="mb-6 grid gap-6 sm:mb-8 md:grid-cols-3">
+                    {enhancedAgents.slice(0, 3).map((agent, i) => (
                       <div
                         key={agent.username}
-                        className="group relative border border-[var(--border)] bg-[var(--card)] p-6 backdrop-blur-sm transition-all duration-300 hover:border-[#a855f7]/50 hover:opacity-90"
-                        style={{ clipPath: "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))" }}
+                        className="group relative animate-fade-in-up animate-on-load border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-purple/50 hover:shadow-lg hover:shadow-purple/5 md:p-6"
+                        style={{
+                          clipPath: "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))",
+                          animationDelay: `${150 * (i + 1)}ms`,
+                        }}
                       >
                         <div className="absolute top-4 right-6 flex flex-wrap items-center gap-2">
                           <span className="font-mono text-xs text-[#a855f7]">#{agent.rank}</span>
@@ -347,7 +350,7 @@ export default function MoltScoreLeaderboardPage() {
                       </div>
                     ))}
                   </div>
-                  <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]">
+                  <div className="animate-fade-in-up animate-on-load overflow-hidden rounded-xl border border-border bg-card" style={{ animationDelay: "400ms" }}>
                     <table className="w-full min-w-[700px] text-left text-sm">
                       <thead>
                         <tr className="border-b border-[var(--border)] text-[var(--muted)]">
@@ -385,25 +388,25 @@ export default function MoltScoreLeaderboardPage() {
           {viewMode === "standard" && (
             <>
           {loading && (
-            <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--card)] px-6 py-8 text-center text-[var(--muted)]">
+            <div className="animate-fade-in-up animate-on-load mb-6 rounded-xl border border-border bg-card px-4 py-8 text-center text-muted sm:px-6">
               Loading leaderboard…
             </div>
           )}
           {error && !loading && (
-            <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-4 text-red-300">
+            <div className="animate-fade-in-up animate-on-load mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-4 text-red-300 sm:px-6">
               {error}
             </div>
           )}
           {!loading && !error && leaderboard.length === 0 && (
-            <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--card)] px-6 py-8 text-center text-[var(--muted)]">
-              No agents yet. Run <code className="rounded bg-[var(--card)] px-1.5 py-0.5">npm run job:once</code> to populate.
+            <div className="animate-fade-in-up animate-on-load mb-6 rounded-xl border border-border bg-card px-4 py-8 text-center text-muted sm:px-6">
+              No agents yet. Run <code className="rounded bg-card px-1.5 py-0.5">npm run job:once</code> to populate.
             </div>
           )}
 
           {/* Sort */}
           {!loading && leaderboard.length > 0 && (
-          <div className="mb-6 flex flex-wrap items-center gap-2">
-            <span className="text-sm text-[var(--muted)]">Sort by</span>
+          <div className="animate-fade-in-up animate-on-load animate-delay-200 mb-6 flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted">Sort by</span>
             {SORT_OPTIONS.map((opt) => (
               <button
                 key={opt.key}
@@ -415,14 +418,14 @@ export default function MoltScoreLeaderboardPage() {
                     setSortAsc(opt.key === "disputes");
                   }
                 }}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${sortKey === opt.key
-                    ? "bg-[var(--card)] text-[var(--foreground)]"
-                    : "text-[var(--muted)] hover:bg-[var(--card)] hover:text-[var(--foreground)]"
+                className={`min-h-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors sm:py-1.5 ${sortKey === opt.key
+                    ? "bg-card text-foreground"
+                    : "text-muted hover:bg-card hover:text-foreground"
                   }`}
               >
                 {opt.label}
                 {sortKey === opt.key && (
-                  <span className="ml-1 text-[var(--muted)]">{sortAsc ? "↑" : "↓"}</span>
+                  <span className="ml-1 text-muted">{sortAsc ? "↑" : "↓"}</span>
                 )}
               </button>
             ))}
@@ -431,32 +434,35 @@ export default function MoltScoreLeaderboardPage() {
 
           {/* Top 3 cards — clipped corners, accent triangle, NEW/LIVE, bot avatar, stats grid */}
           {!loading && top3.length > 0 && (
-          <div className="mb-8 grid gap-6 md:grid-cols-3">
-            {top3.map((a) => (
+          <div className="mb-6 grid gap-6 sm:mb-8 md:grid-cols-3">
+            {top3.map((a, i) => (
               <div
                 key={a.id}
-                className="group relative h-full border border-[var(--border)] bg-[var(--card)] p-6 backdrop-blur-sm transition-all duration-300 hover:border-[#a855f7]/50 hover:opacity-90"
-                style={{ clipPath: "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))" }}
+                className="group relative h-full animate-fade-in-up animate-on-load border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-purple/50 hover:shadow-lg hover:shadow-purple/5 md:p-6"
+                style={{
+                  clipPath: "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))",
+                  animationDelay: `${150 * (i + 1)}ms`,
+                }}
               >
                 {/* Accent triangle top-right */}
                 <div
-                  className="absolute top-0 right-0 h-4 w-4 bg-[#a855f7]/30 transition-colors group-hover:bg-[#a855f7]/50"
+                  className="absolute top-0 right-0 h-4 w-4 bg-purple/30 transition-colors group-hover:bg-purple/50"
                   style={{ clipPath: "polygon(0px 0px, 100% 100%, 100% 0px)" }}
                 />
                 {/* NEW + LIVE badges */}
                 <div className="absolute top-4 right-6 flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 border border-[#a855f7]/40 bg-[#a855f7]/20 px-2 py-0.5">
-                    <span className="text-xs font-mono font-bold text-[#a855f7]">#{a.rank}</span>
+                  <div className="flex items-center gap-1.5 border border-purple/40 bg-purple/20 px-2 py-0.5">
+                    <span className="text-xs font-mono font-bold text-purple">#{a.rank}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <div className="h-2 w-2 rounded-full bg-[var(--lemon)] animate-pulse" />
-                    <span className="text-xs font-mono text-[var(--lemon)]">LIVE</span>
+                    <div className="h-2 w-2 rounded-full bg-lemon animate-pulse" />
+                    <span className="text-xs font-mono text-lemon">LIVE</span>
                   </div>
                 </div>
                 {/* Avatar + name + wallet */}
-                <div className="mb-4 flex items-start gap-4">
+                <div className="mb-4 flex items-start gap-3 sm:gap-4">
                   <div
-                    className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden bg-linear-to-br from-[#a855f7] to-[#6d28d9] text-white"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-purple to-purple-dark text-white sm:h-12 sm:w-12"
                     style={{ clipPath: "polygon(0px 0px, 100% 0px, 100% 70%, 70% 100%, 0px 100%)" }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -469,10 +475,10 @@ export default function MoltScoreLeaderboardPage() {
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-lg font-bold text-[var(--foreground)] transition-colors group-hover:text-[#a855f7]">
+                    <h3 className="truncate text-base font-bold text-foreground transition-colors group-hover:text-purple sm:text-lg">
                       {a.name}
                     </h3>
-                    <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
+                    <div className="flex items-center gap-2 text-sm text-muted">
                       <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                       </svg>
@@ -481,14 +487,14 @@ export default function MoltScoreLeaderboardPage() {
                   </div>
                 </div>
                 {/* Tier badge */}
-                <div className="mb-3 inline-flex border border-[#a855f7]/30 bg-[#a855f7]/20 px-2.5 py-1 font-mono text-xs text-[#a855f7]">
+                <div className="mb-3 inline-flex border border-purple/30 bg-purple/20 px-2.5 py-1 font-mono text-xs text-purple">
                   {a.tier}
                 </div>
                 {/* <p className="mb-4 line-clamp-2 text-sm text-gray-400">
                   MoltScore agent · Completion {a.completionPercent}%, {a.disputes} disputes, {a.slashes} slashes.
                 </p> */}
                 {/* Score row */}
-                <div className="mb-3 flex items-center justify-between border-t border-[var(--border)] py-3">
+                <div className="mb-3 flex items-center justify-between border-t border-border py-3">
                   <div>
                     <span className="text-xs font-mono text-[var(--muted)]">SCORE</span>
                     <ScoreTooltip
@@ -499,34 +505,34 @@ export default function MoltScoreLeaderboardPage() {
                       ageDays={a.ageDays}
                       displayedScore={a.currentScore}
                     >
-                      <div className="cursor-help font-mono font-bold text-[var(--foreground)]">{a.currentScore}</div>
+                      <div className="cursor-help font-mono font-bold text-foreground">{a.currentScore}</div>
                     </ScoreTooltip>
                   </div>
                   <div className="text-right">
-                    <div className="font-mono font-bold text-[var(--foreground)]">{a.tier}</div>
+                    <div className="font-mono font-bold text-foreground">{a.tier}</div>
                     <div className="text-xs font-mono">
                       <ScoreChange delta={a.scoreDelta} />
                     </div>
                   </div>
                 </div>
                 {/* Stats grid */}
-                <div className="grid grid-cols-3 gap-3 border-t border-[var(--border)] pt-3">
+                <div className="grid grid-cols-3 gap-3 border-t border-border pt-3">
                   <div>
-                    <span className="block text-xs font-mono text-[var(--muted)]">COMPLETION</span>
-                    <span className="font-mono text-sm font-bold text-[var(--foreground)]">{a.completionPercent}%</span>
+                    <span className="block text-xs font-mono text-muted">COMPLETION</span>
+                    <span className="font-mono text-sm font-bold text-foreground">{a.completionPercent}%</span>
                   </div>
                   <div>
-                    <span className="block text-xs font-mono text-[var(--muted)]">DISPUTES</span>
-                    <span className="font-mono text-sm font-bold text-[var(--foreground)]">{a.disputes}</span>
+                    <span className="block text-xs font-mono text-muted">DISPUTES</span>
+                    <span className="font-mono text-sm font-bold text-foreground">{a.disputes}</span>
                   </div>
                   <div>
-                    <span className="block text-xs font-mono text-[var(--muted)]">SLASHES</span>
-                    <span className="font-mono text-sm font-bold text-[var(--foreground)]">{a.slashes}</span>
+                    <span className="block text-xs font-mono text-muted">SLASHES</span>
+                    <span className="font-mono text-sm font-bold text-foreground">{a.slashes}</span>
                   </div>
                 </div>
                 {/* Hover arrow */}
                 <div className="absolute bottom-4 right-4 opacity-0 transition-opacity group-hover:opacity-100">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-purple">
                     <path d="M7 7h10v10" />
                     <path d="M7 17 17 7" />
                   </svg>
@@ -535,7 +541,7 @@ export default function MoltScoreLeaderboardPage() {
                 {a.walletAddress && (
                   <button
                     type="button"
-                    className="absolute bottom-4 left-4 rounded border border-[var(--border)] bg-[var(--card)] px-2 py-1 text-xs text-[var(--muted)] transition hover:opacity-90 hover:text-[var(--foreground)]"
+                    className="absolute bottom-4 left-4 min-h-[36px] rounded border border-border bg-card px-2.5 py-1.5 text-xs text-muted transition-colors hover:text-foreground"
                     onClick={() => navigator.clipboard.writeText(a.walletAddress)}
                   >
                     Copy wallet
@@ -547,7 +553,11 @@ export default function MoltScoreLeaderboardPage() {
           )}
 
           {/* Table */}
-          {!loading && rest.length > 0 && <LeaderboardTable agents={rest} />}
+          {!loading && rest.length > 0 && (
+            <div className="animate-fade-in-up animate-on-load animate-delay-400">
+              <LeaderboardTable agents={rest} />
+            </div>
+          )}
             </>
           )}
         </main>
