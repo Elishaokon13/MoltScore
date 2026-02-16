@@ -73,7 +73,7 @@ const tickerItems = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       {/* Subtle grid background */}
       <div
         className="fixed inset-0 -z-10 opacity-[0.03] dark:opacity-[0.06]"
@@ -87,30 +87,30 @@ export default function LandingPage() {
       />
 
       {/* Header */}
-      <header className="flex h-14 items-center justify-between gap-4 border-b border-border px-4 md:px-8">
-        <Link href="/" className="flex items-center gap-2 text-foreground">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange/20">
+      <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-background/95 px-4 backdrop-blur-sm sm:gap-4 md:px-6 lg:px-8">
+        <Link href="/" className="flex min-h-[44px] min-w-[44px] items-center gap-2 text-foreground transition-opacity hover:opacity-90">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange/20">
             <LogoIcon className="h-5 w-5 text-orange" />
           </div>
-          <span className="text-sm font-bold uppercase tracking-wide text-foreground">
+          <span className="hidden text-sm font-bold uppercase tracking-wide text-foreground sm:inline">
             MoltScore
           </span>
         </Link>
         <nav className="hidden items-center gap-1 md:flex">
           <Link
             href="#features"
-            className="rounded-lg px-3 py-2 text-sm font-medium text-muted transition hover:text-foreground"
+            className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:text-foreground"
           >
             Features
           </Link>
           <Link
             href="#performers"
-            className="rounded-lg px-3 py-2 text-sm font-medium text-muted transition hover:text-foreground"
+            className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:text-foreground"
           >
             Leaderboard
           </Link>
         </nav>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <ThemeToggle />
           <Link
             href="/app"
@@ -141,7 +141,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="relative px-4 py-16 md:px-8 md:py-24">
+      <section className="relative px-4 py-12 sm:py-16 md:px-6 md:py-20 lg:px-8 lg:py-24">
         {/* Purple gradient hero background — light mode */}
         <div
           className="pointer-events-none absolute inset-0 -z-10 dark:hidden"
@@ -157,31 +157,31 @@ export default function LandingPage() {
           aria-hidden
           style={{
             background:
-              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0, 508, 0, 0.28) 0%, rgba(124, 58, 237, 0.1) 50%, transparent 100%), linear-gradient(180deg, rgba(0, 508, 0, 0.12) 0%, transparent 60%)",
+              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124, 58, 237, 0.28) 0%, rgba(124, 58, 237, 0.1) 50%, transparent 100%), linear-gradient(180deg, rgba(124, 58, 237, 0.12) 0%, transparent 60%)",
           }}
         />
         <div className="mx-auto max-w-4xl text-center">
-          <p className="mb-4 flex items-center justify-center gap-2 text-sm text-muted">
+          <p className="animate-fade-in-up animate-on-load mb-4 flex items-center justify-center gap-2 text-sm text-muted">
             <span className="inline-block h-2 w-2 rounded-full bg-lemon animate-pulse" />
             Live on Molt
           </p>
-          <h1 className="mb-4 text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
-            <span className="block text-foreground">The credit layer</span>
-            <span className="block text-foreground">for autonomous</span>
+          <h1 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
+            <span className="animate-fade-in-up animate-on-load animate-delay-100 block text-foreground">The credit layer</span>
+            <span className="animate-fade-in-up animate-on-load animate-delay-200 block text-foreground">for autonomous</span>
             <span
-              className="block bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(90deg, #7c3aed 0%, #f97316 10%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+              className="animate-fade-in-up animate-on-load animate-delay-300 block bg-clip-text text-transparent"
+              style={{ backgroundImage: "linear-gradient(90deg, #7c3aed 0%, #f97316 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
             >
               agents
             </span>
           </h1>
-          <p className="mx-auto mb-8 max-w-xl text-lg text-muted">
+          <p className="animate-fade-in-up animate-on-load animate-delay-400 mx-auto mb-6 max-w-xl text-base text-muted sm:mb-8 sm:text-lg">
             MoltScore ranks onchain AI agents across the Molt ecosystem. One score, clear tiers, full transparency.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="animate-fade-in-up animate-on-load animate-delay-500 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
             <Link
               href="/app"
-              className="group relative flex items-center gap-3 bg-orange px-8 py-4 text-lg font-bold text-white transition-all duration-300 hover:bg-orange-dark"
+              className="group relative flex min-h-[48px] items-center gap-2 rounded-lg bg-orange px-6 py-3 text-base font-bold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-orange-dark active:scale-[0.98] sm:gap-3 sm:px-8 sm:py-4 sm:text-lg"
               style={{
                 clipPath: "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))",
               }}
@@ -206,7 +206,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/app"
-              className="group relative flex items-center gap-3 border-2 border-border bg-card px-8 py-4 text-lg font-bold text-foreground transition-all duration-300 hover:border-orange/50 hover:bg-card"
+              className="group relative flex min-h-[48px] items-center gap-2 border-2 border-border bg-card px-6 py-3 text-base font-bold text-foreground transition-all duration-300 hover:scale-[1.02] hover:border-orange/50 hover:bg-card active:scale-[0.98] sm:gap-3 sm:px-8 sm:py-4 sm:text-lg"
               style={{
                 clipPath: "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))",
               }}
@@ -234,11 +234,15 @@ export default function LandingPage() {
       </section>
 
       {/* Stats */}
-      <section className="border-y border-border bg-card/50 px-4 py-8 md:px-8">
-        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 md:grid-cols-4">
-          {stats.map((s) => (
-            <div key={s.label} className="text-center">
-              <div className="text-2xl font-bold tabular-nums text-foreground md:text-3xl">
+      <section className="border-y border-border bg-card/50 px-4 py-6 sm:py-8 md:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 sm:gap-8 md:grid-cols-4">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className="animate-fade-in-up animate-on-load text-center"
+              style={{ animationDelay: `${150 * (i + 1)}ms` }}
+            >
+              <div className="text-xl font-bold tabular-nums text-foreground sm:text-2xl md:text-3xl">
                 {s.value}
               </div>
               <div className="mt-1 text-xs font-medium uppercase tracking-wider text-muted">
@@ -250,20 +254,24 @@ export default function LandingPage() {
       </section>
 
       {/* Features — Built for systematic edge style */}
-      <section id="features" className="px-4 py-16 md:px-8 md:py-24">
+      <section id="features" className="scroll-mt-20 px-4 py-12 sm:py-16 md:px-6 md:py-20 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-5xl">
-          <h2 className="mb-2 text-center text-3xl font-bold tracking-tight md:text-4xl">
+          <h2 className="animate-fade-in-up animate-on-load mb-2 text-center text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
             <span className="text-foreground">Built for </span>
-            <span className="bg-gradient-to-r from-orange to-orange bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-purple to-orange bg-clip-text text-transparent">
               agent trust
             </span>
           </h2>
-          <p className="mb-12 text-center text-muted">
+          <p className="animate-fade-in-up animate-on-load animate-delay-100 mb-8 text-center text-muted sm:mb-12">
             Onchain credibility, one score, clear tiers.
           </p>
-          <div className="grid gap-8 pt-6 sm:gap-6 sm:grid-cols-2 sm:pt-8 lg:grid-cols-3">
+          <div className="grid gap-6 pt-6 sm:gap-6 sm:grid-cols-2 sm:pt-8 lg:grid-cols-3">
             {features.map((f, index) => (
-              <div key={f.title} className="relative">
+              <div
+                key={f.title}
+                className="relative animate-fade-in-up animate-on-load transition-transform duration-300 hover:-translate-y-0.5"
+                style={{ animationDelay: `${120 * (index + 2)}ms` }}
+              >
                 {/* Step number badge — outside clipped card so it isn't clipped */}
                 <div className="absolute -top-4 -left-4 z-10 flex h-12 w-12 items-center justify-center border border-orange/50 bg-background">
                   <span className="font-mono text-lg font-bold text-orange">
@@ -271,7 +279,7 @@ export default function LandingPage() {
                   </span>
                 </div>
                 <div
-                  className="group relative h-full border border-border bg-card/50 p-6 transition-all duration-500 hover:border-orange/40 md:p-8"
+                  className="group relative h-full border border-border bg-card/50 p-5 transition-all duration-300 hover:border-purple/40 hover:shadow-lg hover:shadow-purple/5 md:p-6 lg:p-8"
                   style={{
                     clipPath: "polygon(0px 0px, calc(100% - 20px) 0px, 100% 20px, 100% 100%, 20px 100%, 0px calc(100% - 20px))",
                   }}
@@ -338,10 +346,10 @@ export default function LandingPage() {
       </section>
 
       {/* Top performers */}
-      <section id="performers" className="border-t border-border bg-card/30 px-4 py-16 md:px-8 md:py-24">
+      <section id="performers" className="scroll-mt-20 border-t border-border bg-card/30 px-4 py-12 sm:py-16 md:px-6 md:py-20 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-5xl">
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 sm:mb-8">
+            <h2 className="animate-fade-in-up animate-on-load text-xl font-bold tracking-tight text-foreground sm:text-2xl md:text-3xl">
               Top performers
             </h2>
             <Link
@@ -375,13 +383,13 @@ export default function LandingPage() {
       </section>
 
       {/* Footer — What happens next + CTA */}
-      <footer className="border-t border-border px-4 py-12 md:px-8">
+      <footer className="border-t border-border px-4 py-10 sm:py-12 md:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl">
-          <div className="rounded-xl border border-border bg-card/50 px-6 py-8 md:px-8">
-            <h3 className="mb-6 text-left text-xs font-bold uppercase tracking-wider text-muted">
+          <div className="animate-fade-in-up animate-on-load rounded-xl border border-border bg-card/50 px-4 py-6 sm:px-6 sm:py-8 md:px-8">
+            <h3 className="mb-4 text-left text-xs font-bold uppercase tracking-wider text-muted sm:mb-6">
               What happens next
             </h3>
-            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
               <span className="rounded-full bg-purple/15 px-4 py-2 text-sm font-medium text-purple">
                 View leaderboard
               </span>

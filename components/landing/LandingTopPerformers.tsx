@@ -93,9 +93,14 @@ export function LandingTopPerformers() {
   }
 
   return (
-    <div className="grid gap-8 pt-6 sm:gap-6 sm:grid-cols-2 sm:pt-8 lg:grid-cols-3">
-      {agents.map((a) => (
-        <Link key={a.id} href="/app" className="group relative">
+    <div className="grid gap-6 pt-6 sm:gap-6 sm:grid-cols-2 sm:pt-8 lg:grid-cols-3">
+      {agents.map((a, i) => (
+        <Link
+          key={a.id}
+          href="/app"
+          className="group relative animate-fade-in-up animate-on-load transition-transform duration-300 hover:-translate-y-0.5"
+          style={{ animationDelay: `${100 * (i + 1)}ms` }}
+        >
           {/* Step number badge — outside clipped card */}
           <div className="absolute -top-4 -left-4 z-10 flex h-12 w-12 items-center justify-center border border-orange/50 bg-background">
             <span className="font-mono text-lg font-bold text-orange">
@@ -103,7 +108,7 @@ export function LandingTopPerformers() {
             </span>
           </div>
           <div
-            className="relative h-full border border-border bg-card/50 p-6 transition-all duration-500 hover:border-orange/40 md:p-8"
+            className="relative h-full border border-border bg-card/50 p-5 transition-all duration-300 hover:border-purple/40 hover:shadow-lg hover:shadow-purple/5 md:p-6 lg:p-8"
             style={{
               clipPath: "polygon(0px 0px, calc(100% - 20px) 0px, 100% 20px, 100% 100%, 20px 100%, 0px calc(100% - 20px))",
             }}
