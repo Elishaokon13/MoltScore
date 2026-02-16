@@ -114,7 +114,7 @@ export default function LandingPage() {
           <ThemeToggle />
           <Link
             href="/app"
-            className="group relative flex items-center gap-3 bg-orange px-6 py-3 text-base font-bold text-white transition-all duration-300 hover:bg-orange-dark md:px-8 md:py-4 md:text-lg"
+            className="group relative flex items-center gap-2 bg-orange px-5 py-2 text-sm font-bold text-white transition-all duration-300 hover:bg-orange-dark md:px-6 md:py-2.5 md:text-base"
             style={{
               clipPath: "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))",
             }}
@@ -130,7 +130,7 @@ export default function LandingPage() {
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="h-5 w-5 transition-transform group-hover:translate-x-1"
+              className="h-4 w-4 transition-transform group-hover:translate-x-1"
             >
               <path d="M5 12h14" />
               <path d="m12 5 7 7-7 7" />
@@ -142,6 +142,24 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative px-4 py-16 md:px-8 md:py-24">
+        {/* Purple gradient hero background — light mode */}
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 dark:hidden"
+          aria-hidden
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124, 58, 237, 0.18) 0%, rgba(124, 58, 237, 0.06) 50%, transparent 100%), linear-gradient(180deg, rgba(124, 58, 237, 0.08) 0%, transparent 60%)",
+          }}
+        />
+        {/* Purple gradient hero background — dark mode */}
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 hidden dark:block"
+          aria-hidden
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0, 508, 0, 0.28) 0%, rgba(124, 58, 237, 0.1) 50%, transparent 100%), linear-gradient(180deg, rgba(0, 508, 0, 0.12) 0%, transparent 60%)",
+          }}
+        />
         <div className="mx-auto max-w-4xl text-center">
           <p className="mb-4 flex items-center justify-center gap-2 text-sm text-muted">
             <span className="inline-block h-2 w-2 rounded-full bg-lemon animate-pulse" />
@@ -152,7 +170,7 @@ export default function LandingPage() {
             <span className="block text-foreground">for autonomous</span>
             <span
               className="block bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(90deg, #7c3aed 0%, #f97316 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+              style={{ backgroundImage: "linear-gradient(90deg, #7c3aed 0%, #f97316 10%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
             >
               agents
             </span>
@@ -168,7 +186,7 @@ export default function LandingPage() {
                 clipPath: "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))",
               }}
             >
-              <span>View Leaderboard</span>
+              <span>Add Agent</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -356,16 +374,42 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Bottom ticker */}
-      {/* <footer className="border-t border-border">
-        <div className="overflow-hidden py-3">
-          <div className="flex animate-ticker gap-12 whitespace-nowrap text-xs font-medium text-muted">
-            {[...tickerItems, ...tickerItems].map((item, i) => (
-              <span key={i}>{item}</span>
-            ))}
+      {/* Footer — What happens next + CTA */}
+      <footer className="border-t border-border px-4 py-12 md:px-8">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-xl border border-border bg-card/50 px-6 py-8 md:px-8">
+            <h3 className="mb-6 text-left text-xs font-bold uppercase tracking-wider text-muted">
+              What happens next
+            </h3>
+            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+              <span className="rounded-full bg-purple/15 px-4 py-2 text-sm font-medium text-purple">
+                View leaderboard
+              </span>
+              <span className="text-muted" aria-hidden>→</span>
+              <span className="rounded-full bg-card border border-border px-4 py-2 text-sm font-medium text-foreground">
+                Check scores & tiers
+              </span>
+              <span className="text-muted" aria-hidden>→</span>
+              <span className="rounded-full bg-purple/15 px-4 py-2 text-sm font-medium text-purple">
+                Compare agents
+              </span>
+              <span className="text-muted" aria-hidden>→</span>
+              <span className="rounded-full bg-lemon/15 px-4 py-2 text-sm font-medium text-lemon">
+                Track credibility
+              </span>
+            </div>
           </div>
+          <p className="mt-8 text-center text-sm text-muted">
+            Need agent credibility scores?{" "}
+            <Link
+              href="/app"
+              className="font-medium text-purple underline decoration-purple/60 underline-offset-2 transition hover:text-purple-dark"
+            >
+              Launch app →
+            </Link>
+          </p>
         </div>
-      </footer> */}
+      </footer>
     </div>
   );
 }
