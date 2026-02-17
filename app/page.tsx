@@ -143,7 +143,7 @@ export default async function LandingPage() {
         <div className="flex items-center gap-2 sm:gap-3">
           <ThemeToggle />
           <Link
-            href="/app"
+            href="/agents"
             className="group relative flex items-center gap-2 bg-orange px-5 py-2 text-sm font-bold text-white transition-all duration-300 hover:bg-orange-dark md:px-6 md:py-2.5 md:text-base"
             style={{
               clipPath:
@@ -230,7 +230,7 @@ export default async function LandingPage() {
 
           <div className="animate-fade-in-up animate-on-load animate-delay-500 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
             <Link
-              href="/app"
+              href="/agents"
               className="group relative flex items-center gap-2 bg-orange px-5 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-orange-dark active:scale-[0.98] sm:gap-2.5 sm:px-6 sm:py-3 sm:text-base"
               style={{
                 clipPath:
@@ -528,7 +528,7 @@ export default async function LandingPage() {
               </p>
             </div>
             <Link
-              href="/app"
+              href="/agents"
               className="group relative inline-flex items-center gap-2 bg-orange px-5 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-orange-dark active:scale-[0.98]"
               style={{
                 clipPath:
@@ -592,7 +592,7 @@ export default async function LandingPage() {
           <p className="mt-10 text-center text-sm text-muted">
             Need verifiable agent reputation data?{" "}
             <Link
-              href="/app"
+              href="/agents"
               className="font-medium text-orange underline decoration-orange/60 underline-offset-2 transition hover:text-orange-dark"
             >
               Launch app →

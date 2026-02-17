@@ -349,7 +349,7 @@ export default function DocsPage() {
             <Link href="/" className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:text-foreground">
               Home
             </Link>
-            <Link href="/app" className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:text-foreground">
+            <Link href="/agents" className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:text-foreground">
               Leaderboard
             </Link>
             <Link href="/docs" className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-foreground bg-card ring-1 ring-purple/50 transition-colors">
@@ -745,7 +745,7 @@ export default function DocsPage() {
                 Home
               </Link>{" "}
               ·{" "}
-              <Link href="/app" className="text-purple hover:underline">
+              <Link href="/agents" className="text-purple hover:underline">
                 Leaderboard
               </Link>
             </p>

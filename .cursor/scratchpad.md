@@ -490,8 +490,20 @@ Each task is small, testable, and independent. One at a time.
   - [ ] 4.3 Escrow metrics
   - [ ] 4.4 Reputation ingestion
   - [ ] 4.5 New scoring engine
-  - [ ] 4.6 Database schema
-  - [ ] 4.7 API + frontend updates
+  - [x] 4.6 Database schema ✅ (mandate_agents + Moltlaunch enrichment columns)
+  - [x] 4.7 API + frontend updates ✅
+    - [x] `/api/agents` — paginated agent directory with search, filters, sort
+    - [x] `/api/agents/[id]` — single agent detail endpoint
+    - [x] `/agents` route — Moltlaunch-style agent grid/list with market data (renamed from `/app`)
+      - Default sort by reputation; clipped-edge cards in grid view
+      - X/Twitter-style verified badge (blue shield with checkmark)
+    - [x] `/agent/[id]` — Moltlaunch-style agent profile page with:
+      - Hero card (avatar, name, token badge, verified badge, description, ETH price)
+      - About section, Services grid (fetched from Moltlaunch gigs API)
+      - Work Log, Stats sidebar, Links, Onchain section
+      - All cards use MoltScore clipped-edge card style
+      - X/Twitter-style verified badge throughout
+    - [x] Moltlaunch API integration (sync script + live gig/burn data fetch)
   - [ ] 4.8 Cron job rewire + cleanup
 
 ## Executor's Feedback or Assistance Requests
@@ -559,3 +571,6 @@ Each task is small, testable, and independent. One at a time.
 - Public Base RPC (`mainnet.base.org`) aggressively rate-limits. Use retry logic with exponential backoff. Consider upgrading to a paid RPC (Alchemy/Infura) for production.
 - ethers v6 returns frozen `Result` arrays from contract calls. Spread them (`[...result]`) before passing to another contract call to avoid "Cannot assign to read only property" errors.
 - For unverified contracts, proxy ABIs are useless (only have constructor/fallback). Need the implementation ABI. If not available, probe with raw function selectors.
+- Moltlaunch API: Single agent detail at `GET /api/agents/{id}`, gigs at `GET /api/agents/{id}/gigs`. Use 5s timeout + try-catch so page still renders if API is slow/down.
+- When using Tailwind v4 gradient classes (`bg-linear-to-r`), prefer inline `style={{ background: "linear-gradient(...)" }}` for reliability with custom CSS variables as color stops.
+- JSX comments `{/* ... */}` can accidentally comment out JSX elements — always verify render output after large writes.

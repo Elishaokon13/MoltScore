@@ -42,17 +42,12 @@ interface ApiResp {
 
 const SKILL_FILTERS = ["all", "code", "research", "audit", "automation", "security"];
 const SORT_OPTIONS = [
-  { value: "named", label: "Featured" },
-  { value: "mcap", label: "MCap" },
   { value: "reputation", label: "Reputation" },
+  { value: "mcap", label: "MCap" },
+  { value: "named", label: "Featured" },
   { value: "recent", label: "Recent" },
   { value: "id", label: "Agent ID" },
 ];
-
-function shortAddr(addr: string | null): string {
-  if (!addr) return "";
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-}
 
 function formatUsd(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
@@ -71,6 +66,23 @@ function LogoIcon({ className }: { className?: string }) {
   );
 }
 
+function VerifiedBadge({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M20.396 11c.003-.476-.15-.95-.456-1.36l-1.21-1.607.24-1.992a2.16 2.16 0 0 0-.658-1.823 2.16 2.16 0 0 0-1.82-.665l-1.993.231L13.13 2.58a2.16 2.16 0 0 0-2.72-.001l-1.608 1.21-1.991-.24a2.16 2.16 0 0 0-1.824.658 2.16 2.16 0 0 0-.665 1.82l.232 1.994-1.204 1.609a2.16 2.16 0 0 0 0 2.72l1.21 1.607-.233 1.993a2.16 2.16 0 0 0 .659 1.823 2.16 2.16 0 0 0 1.82.664l1.992-.231 1.609 1.203a2.16 2.16 0 0 0 2.719 0l1.608-1.21 1.992.233a2.16 2.16 0 0 0 2.483-2.484l-.231-1.992 1.203-1.61c.307-.408.46-.883.457-1.359"
+        fill="#1D9BF0"
+      />
+      <path
+        d="M9.585 14.427l-2.263-2.264a.625.625 0 0 1 .884-.884l1.82 1.82 4.932-4.932a.625.625 0 0 1 .884.884l-5.374 5.376a.625.625 0 0 1-.883 0z"
+        fill="#fff"
+      />
+    </svg>
+  );
+}
+
+const CARD_CLIP = "polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))";
+
 function AgentCard({ agent }: { agent: Agent }) {
   const hasToken = !!agent.symbol;
   const hasMcap = agent.marketCap > 0;
@@ -80,8 +92,15 @@ function AgentCard({ agent }: { agent: Agent }) {
   return (
     <Link
       href={`/agent/${agent.agentId}`}
-      className="group relative flex flex-col rounded-xl border border-border bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-purple/40 hover:shadow-lg hover:shadow-purple/5"
+      className="group relative flex flex-col border border-border bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-purple/40 hover:shadow-lg hover:shadow-purple/5"
+      style={{ clipPath: CARD_CLIP }}
     >
+      {/* Accent corner */}
+      <div
+        className="absolute top-0 right-0 h-4 w-4 bg-purple/30"
+        style={{ clipPath: "polygon(0 0, 100% 100%, 100% 0)" }}
+      />
+
       {/* Header: avatar + name + token */}
       <div className="mb-3 flex items-start gap-3">
         {agent.image ? (
@@ -102,15 +121,11 @@ function AgentCard({ agent }: { agent: Agent }) {
           {agent.name.charAt(0).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <h3 className="truncate text-sm font-bold text-foreground group-hover:text-purple">
               {agent.name}
             </h3>
-            {agent.xVerified && (
-              <svg className="h-3.5 w-3.5 shrink-0 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-              </svg>
-            )}
+            {agent.xVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
           </div>
           <div className="flex items-center gap-1.5">
             {hasToken && (
@@ -204,11 +219,7 @@ function AgentRow({ agent }: { agent: Agent }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span className="truncate text-sm font-semibold text-foreground group-hover:text-purple">{agent.name}</span>
-          {agent.xVerified && (
-            <svg className="h-3 w-3 shrink-0 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-            </svg>
-          )}
+          {agent.xVerified && <VerifiedBadge className="h-3.5 w-3.5 shrink-0" />}
           {agent.symbol && (
             <span className="font-mono text-xs text-muted">${agent.symbol}</span>
           )}
@@ -247,7 +258,7 @@ export default function AgentsPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeSkill, setActiveSkill] = useState("all");
-  const [sort, setSort] = useState("named");
+  const [sort, setSort] = useState("reputation");
   const [view, setView] = useState<"grid" | "list">("grid");
 
   useEffect(() => {
@@ -295,7 +306,7 @@ export default function AgentsPage() {
           </Link>
           <nav className="flex items-center gap-1">
             <Link href="/" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">Home</Link>
-            <Link href="/app" className="rounded-md bg-card px-3 py-1.5 text-sm font-medium text-foreground ring-1 ring-purple/40">Agents</Link>
+            <Link href="/agents" className="rounded-md bg-card px-3 py-1.5 text-sm font-medium text-foreground ring-1 ring-purple/40">Agents</Link>
             <Link href="/docs" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">API Docs</Link>
           </nav>
         </div>
@@ -311,7 +322,7 @@ export default function AgentsPage() {
 
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground">Agents</h1>
-          <p className="text-muted">Browse the registry. Filter by skill, sort by reputation or market cap.</p>
+          <p className="text-muted">Browse the registry. Ranked by reputation.</p>
         </div>
 
         {/* Filter bar */}

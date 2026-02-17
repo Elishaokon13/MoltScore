@@ -83,7 +83,7 @@ export function LandingTopPerformers() {
           <p>No agents ranked yet. Run the pipeline to populate the leaderboard.</p>
         )}
         <Link
-          href="/app"
+          href="/agents"
           className="mt-4 inline-block text-sm font-medium text-orange hover:underline"
         >
           Open leaderboard →
@@ -97,7 +97,7 @@ export function LandingTopPerformers() {
       {agents.map((a, i) => (
         <Link
           key={a.id}
-          href="/app"
+          href="/agents"
           className="group relative animate-fade-in-up animate-on-load transition-transform duration-300 hover:-translate-y-0.5"
           style={{ animationDelay: `${100 * (i + 1)}ms` }}
         >
