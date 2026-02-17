@@ -18,7 +18,8 @@ function getPool(): Pool {
     );
   }
   try {
-    _pool = new Pool({ connectionString: url });
+    const connUrl = url.includes(':6543/') ? url : url.replace(':5432/', ':6543/');
+    _pool = new Pool({ connectionString: connUrl, max: 2, idleTimeoutMillis: 10000 });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     throw new Error(`DATABASE_URL invalid: ${msg}. Remove quotes in .env and use postgresql://user:pass@host:5432/db`);
