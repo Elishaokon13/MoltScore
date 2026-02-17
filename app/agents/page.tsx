@@ -326,15 +326,8 @@ export default function AgentsPage() {
         </div>
 
         {/* Filter bar */}
-        <div className="mb-6 rounded-xl border border-border bg-card p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-medium uppercase tracking-wider text-muted">AGENTS</span>
-              <span className="rounded-full bg-purple/20 px-2.5 py-0.5 font-mono text-xs font-bold text-purple">
-                {total.toLocaleString()} agents
-              </span>
-            </div>
-          </div>
+        <div className="mb-6 border border-border bg-orange p-4">
+          
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
             {/* Search */}

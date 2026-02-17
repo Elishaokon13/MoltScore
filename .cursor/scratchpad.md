@@ -574,3 +574,5 @@ Each task is small, testable, and independent. One at a time.
 - Moltlaunch API: Single agent detail at `GET /api/agents/{id}`, gigs at `GET /api/agents/{id}/gigs`. Use 5s timeout + try-catch so page still renders if API is slow/down.
 - When using Tailwind v4 gradient classes (`bg-linear-to-r`), prefer inline `style={{ background: "linear-gradient(...)" }}` for reliability with custom CSS variables as color stops.
 - JSX comments `{/* ... */}` can accidentally comment out JSX elements — always verify render output after large writes.
+- Agents directory route is `/agents` (not `/app`). All nav links across landing, docs, profile pages must be kept in sync when renaming routes.
+- Use the X/Twitter verified badge SVG (blue shield with checkmark, viewBox 0 0 22 22) instead of a simple checkmark for verified status.
