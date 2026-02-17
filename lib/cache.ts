@@ -281,23 +281,88 @@ export async function updateDiscoveredAgentWallet(username: string, wallet: stri
   }
 }
 
-export function getLastProcessedBlock(contractKey: string): number | undefined {
-  return memory.lastProcessedBlockByContract[contractKey];
+/**
+ * Scan state: persisted to `scan_state` table. Falls back to in-memory if DB fails.
+ */
+export async function getLastProcessedBlock(contractKey: string): Promise<number | undefined> {
+  if (memory.lastProcessedBlockByContract[contractKey] !== undefined) {
+    return memory.lastProcessedBlockByContract[contractKey];
+  }
+  try {
+    const res = await pool.query(
+      `SELECT last_block FROM scan_state WHERE contract_key = $1`,
+      [contractKey]
+    );
+    const row = res.rows[0] as { last_block: string } | undefined;
+    if (row) {
+      const block = Number(row.last_block);
+      memory.lastProcessedBlockByContract[contractKey] = block;
+      return block;
+    }
+    return undefined;
+  } catch (e) {
+    console.warn(LOG, "getLastProcessedBlock DB error, using memory", { contractKey, error: String(e) });
+    return memory.lastProcessedBlockByContract[contractKey];
+  }
 }
 
-export function setLastProcessedBlock(contractKey: string, blockNumber: number): void {
+export async function setLastProcessedBlock(contractKey: string, blockNumber: number): Promise<void> {
   memory.lastProcessedBlockByContract[contractKey] = blockNumber;
+  try {
+    await pool.query(
+      `INSERT INTO scan_state (contract_key, last_block, updated_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (contract_key) DO UPDATE SET last_block = $2, updated_at = NOW()`,
+      [contractKey, blockNumber]
+    );
+  } catch (e) {
+    console.warn(LOG, "setLastProcessedBlock DB error", { contractKey, blockNumber, error: String(e) });
+  }
 }
 
-export function getWalletMetricsRow(wallet: string): WalletMetricsRow | undefined {
-  return memory.walletMetrics[wallet];
+/**
+ * Wallet metrics: persisted to `wallet_metrics` table. In-memory cache for fast reads within a cycle.
+ */
+export async function getWalletMetricsRow(wallet: string): Promise<WalletMetricsRow | undefined> {
+  if (memory.walletMetrics[wallet]) {
+    return memory.walletMetrics[wallet];
+  }
+  try {
+    const res = await pool.query(
+      `SELECT tasks_completed, tasks_failed, disputes, slashes, first_block_timestamp
+       FROM wallet_metrics WHERE wallet = $1`,
+      [wallet]
+    );
+    const row = res.rows[0] as {
+      tasks_completed: number;
+      tasks_failed: number;
+      disputes: number;
+      slashes: number;
+      first_block_timestamp: string;
+    } | undefined;
+    if (row) {
+      const metrics: WalletMetricsRow = {
+        tasksCompleted: row.tasks_completed,
+        tasksFailed: row.tasks_failed,
+        disputes: row.disputes,
+        slashes: row.slashes,
+        firstBlockTimestamp: Number(row.first_block_timestamp),
+      };
+      memory.walletMetrics[wallet] = metrics;
+      return metrics;
+    }
+    return undefined;
+  } catch (e) {
+    console.warn(LOG, "getWalletMetricsRow DB error, using memory", { wallet: wallet.slice(0, 10), error: String(e) });
+    return memory.walletMetrics[wallet];
+  }
 }
 
-export function mergeWalletMetrics(
+export async function mergeWalletMetrics(
   wallet: string,
   update: Partial<WalletMetricsRow> & { firstBlockTimestamp?: number }
-): void {
-  const cur = memory.walletMetrics[wallet];
+): Promise<void> {
+  const cur = memory.walletMetrics[wallet] ?? await getWalletMetricsRow(wallet);
   const base: WalletMetricsRow = cur
     ? { ...cur }
     : { tasksCompleted: 0, tasksFailed: 0, disputes: 0, slashes: 0, firstBlockTimestamp: 0 };
@@ -311,4 +376,16 @@ export function mergeWalletMetrics(
     }
   }
   memory.walletMetrics[wallet] = base;
+  try {
+    await pool.query(
+      `INSERT INTO wallet_metrics (wallet, tasks_completed, tasks_failed, disputes, slashes, first_block_timestamp, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       ON CONFLICT (wallet) DO UPDATE SET
+         tasks_completed = $2, tasks_failed = $3, disputes = $4, slashes = $5,
+         first_block_timestamp = $6, updated_at = NOW()`,
+      [wallet, base.tasksCompleted, base.tasksFailed, base.disputes, base.slashes, base.firstBlockTimestamp]
+    );
+  } catch (e) {
+    console.warn(LOG, "mergeWalletMetrics DB error", { wallet: wallet.slice(0, 10), error: String(e) });
+  }
 }

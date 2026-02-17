@@ -1,205 +1,327 @@
-# MoltScore Project Scratchpad
+# MoltScore — Reputation Layer for Autonomous Agents
 
 ## Background and Motivation
 
-**UPDATED:** MoltScore is pivoting from a "credit scoring system" to a **reputation layer for autonomous AI agents**. The new framing:
+MoltScore is the **reputation layer for autonomous agents** — unlocking rich, verifiable reputation data that makes true agents visible. Think "Talent Protocol, but for AI agents."
 
-> MoltScore is the **reputation layer** for autonomous agents — unlocking rich, verifiable reputation data that makes true agents visible.
+**What exists today:** A working scoring pipeline that discovers agents on Moltbook, collects onchain + debate + financial metrics, computes a composite reputation score (300–950), assigns tiers (AAA → Risk Watch), and replies to agents with their score. Frontend has a landing page and leaderboard.
 
-The shift is conceptual, not structural. The scoring engine, data pipeline, tier system, and multi-dimensional analysis all stay. What changes is the **language and framing** — from financial credit metaphors (credit tiers, credit scores, credibility) to **reputation and trust metaphors** (reputation data, trust signals, verified agents, proven track records).
-
-**Why this matters:** "Credit layer" implies financial lending risk. "Reputation layer" implies trust, visibility, and discoverability — which is actually what the product does. Agents aren't being lent money; they're being evaluated on their track record to help ecosystems and protocols decide who to trust.
+**What we're building:** A complete reputation infrastructure that other agents and protocols can query, integrate, and build on. Agents can register themselves. Scores are transparent and broken down into verifiable data points. The system runs autonomously at $0.
 
 ---
 
-## Key Challenges and Analysis
+## Complete Build Plan
 
-### The Pivot: Credit → Reputation
+### What Already Works (no changes needed)
 
-The backend logic is **already reputation-focused** — it evaluates task performance, dispute history, ecosystem participation, intellectual contribution, and financial behavior. The "credit" framing was only a copywriting choice. The scoring engines don't use "credit" terminology internally.
-
-**What changes:**
-- Frontend copy (landing page, app page, metadata)
-- A few backend comments/headers
-- Conceptual framing in documentation
-
-**What does NOT change:**
-- Scoring formulas
-- Database schema
-- API endpoints or response formats
-- Tier system structure (AAA–Risk Watch is fine for reputation too)
-- Data pipeline
-
-### Specific Copy Changes Needed
-
-| Location | Current (Credit) | New (Reputation) |
+| Component | Status | Notes |
 |---|---|---|
-| Hero H1 | "The credit layer for autonomous agents" | "The reputation layer for autonomous agents" |
-| Hero subtitle | "MoltScore ranks onchain AI agents... One score, clear tiers, full transparency." | "Unlocking rich and verifiable reputation data that makes true agents visible." |
-| Stats | "CREDIT TIERS" | "REPUTATION TIERS" |
-| Feature: title | "CREDIT TIERS" | "REPUTATION TIERS" |
-| Feature: description | "From AAA to Risk Watch. Clear tiers so users and integrators know who to trust at a glance." | "From AAA to Risk Watch. Clear tiers so protocols and builders know who to trust at a glance." |
-| Feature: "ONCHAIN SCORING" desc | "...single credibility score..." | "...single reputation score..." |
-| Features section subtitle | "Onchain credibility, one score, clear tiers." | "Verifiable reputation, one score, clear tiers." |
-| Footer flow step | "Track credibility" | "Track reputation" |
-| Footer CTA | "Need agent credibility scores?" | "Need agent reputation data?" |
-| Layout metadata | "The Credit Layer for Autonomous Agents" | "The Reputation Layer for Autonomous Agents" |
-| `lib/score.ts` comment | "Credit Layer for Autonomous Agents" | "Reputation Layer for Autonomous Agents" |
-
-### Additional Improvements (Reputation-aligned)
-
-With the new framing, some additional copy improvements make sense:
-
-1. **Hero messaging** — Emphasize "visibility" and "verifiable" data, not just ranking
-2. **Feature cards** — Could reframe slightly to emphasize "reputation signals" rather than just "scoring"
-3. **"Built for" subtitle** — Should emphasize trust/discovery, not just credibility
+| Scoring engine (basic) | Done | `services/scoringEngine.ts` — formula-based scoring |
+| Scoring engine (enhanced) | Done | `services/enhancedScoringEngine.ts` — 5-component scoring |
+| Agent discovery | Done | `services/agentDiscovery.ts` — Moltbook feed crawling |
+| Onchain metrics | Done | `services/agentMetrics.ts` — Base chain event scanning |
+| MoltCourt integration | Done | `services/moltcourtSync.ts` — debate stats |
+| Bankr integration | Done | `services/bankrIntegration.ts` — financial metrics |
+| Conversation engine | Done | `services/conversationEngine.ts` — reply to agents |
+| Autonomous loop | Done | `jobs/autonomousLoop.ts` — 15-min cron |
+| Database schema | Done | PostgreSQL via `pg` — core + enhanced tables |
+| Landing page | Done | Reputation framing, responsive, animated |
+| Leaderboard app | Done | Standard + Enhanced views |
 
 ---
 
-## High-level Task Breakdown
+## Phase 0: Production Infrastructure ($0)
 
-### Task 1: Frontend Copy — Landing Page (`app/page.tsx`)
-- [ ] Update hero H1, subtitle, and CTA labels
-- [ ] Update stats section ("CREDIT TIERS" → "REPUTATION TIERS")
-- [ ] Update features data array (titles, descriptions, pills)
-- [ ] Update features section subtitle
-- [ ] Update footer copy (flow steps + CTA)
-- **Success criteria:** No instance of "credit" or "credibility" in landing page. All copy reflects reputation/trust framing.
+**Goal:** Deploy everything to production, running autonomously, at zero cost.
 
-### Task 2: Metadata + Backend Comments
-- [ ] Update `app/layout.tsx` metadata description
-- [ ] Update `lib/score.ts` file header comment
-- **Success criteria:** `grep -i "credit" app/layout.tsx lib/score.ts` returns nothing.
+### 0.1 — Convert cron job to API route
+- **What:** Create `app/api/cron/score/route.ts` that calls `runMoltScoreLoop()` once
+- **Why:** Serverless platforms (Vercel) can't run persistent `node-cron` processes
+- **Security:** Require `CRON_SECRET` header to prevent unauthorized triggers
+- **Files:** New `app/api/cron/score/route.ts`, keep existing `jobs/autonomousLoop.ts` as-is for local dev
+- **Success:** `curl -H "Authorization: Bearer $CRON_SECRET" POST /api/cron/score` triggers one scoring cycle and returns results
 
-### Task 3: App Page Review (`app/app/page.tsx`)
-- [ ] Review for any credit-specific language
-- [ ] Already uses "Score", "Tier", "Leaderboard" — likely minimal changes needed
-- **Success criteria:** No credit-specific language in the app page.
+### 0.2 — GitHub Actions cron workflow
+- **What:** Create `.github/workflows/score.yml` that triggers the API route every 15 minutes
+- **Why:** Free autonomous scheduling (2,000 min/month free for public repos)
+- **Files:** New `.github/workflows/score.yml`
+- **Success:** GitHub Actions runs on schedule, triggers scoring, logs success/failure
 
-### Task 4: Scratchpad + Documentation
-- [ ] Update scratchpad to reflect new positioning
-- **Success criteria:** Documentation reflects reputation layer framing.
+### 0.3 — Database setup (Neon)
+- **What:** Document Neon free-tier setup, update `.env.example` with Neon connection string format
+- **Why:** Free PostgreSQL with 0.5 GB storage (plenty for thousands of agents)
+- **Files:** Update `README.md` with setup instructions
+- **Success:** `npm run db:init && npm run db:init:enhanced` works against Neon
 
----
+### 0.4 — Vercel deployment
+- **What:** Configure `vercel.json` if needed, document deployment steps
+- **Why:** Free Next.js hosting with serverless functions
+- **Files:** `vercel.json` (if needed), `README.md`
+- **Success:** App deploys to Vercel, all API routes work, env vars configured
 
-## Strategic Vision: MoltScore as "Talent Protocol for Agents"
+### 0.5 — Persist `lastProcessedBlock` to database
+- **What:** Create `scan_state` table, save/load block scanning progress
+- **Why:** Currently in-memory — lost on restart, causing re-scanning or missed events
+- **Files:** Update `scripts/initDb.ts`, update `services/agentMetrics.ts`
+- **Success:** After restart, block scanning resumes from where it left off
 
-### The Talent Protocol Model (for humans)
-
-Talent Protocol built a **composable reputation infrastructure** for human builders:
-
-1. **Talent Passport** — a portable onchain profile auto-populated with verified data
-2. **Data Points** — atomic, verified facts (GitHub commits, ETH txns, hackathon wins) from 40+ integrations
-3. **Builder Score** — a composite score computed from Data Points, with transparent signal strength weights
-4. **Credentials** — onchain attestations that break down what contributed to the score
-5. **Open API** — any app can query scores, credentials, and data points via API key
-6. **Mintable Badges** — level-based NFT badges that persist even if score drops
-7. **Integrations** — Basenames, Etherscan, Farcaster, etc. use Builder Score as a trust signal
-
-**Key insight:** Talent Protocol is not just a leaderboard — it's **infrastructure**. Other apps consume the data. The score is portable. The data is composable.
-
-### What MoltScore Currently Is vs. What It Could Be
-
-| Dimension | MoltScore Today | Talent Protocol Equivalent | Gap |
-|---|---|---|---|
-| **Profile** | No agent profile page | Talent Passport | Need "Agent Passport" |
-| **Data Points** | 5 data sources (onchain, MoltCourt, Bankr, Moltbook, activity) | 40+ integrations | Need more data sources + atomic data point model |
-| **Score** | Composite score (300–950) | Builder Score (0–250+) | Have this, but need transparent breakdowns |
-| **Credentials** | None | Onchain attestations | Need verifiable credential system |
-| **API** | Read-only leaderboard | Full CRUD + lookup + search | Need self-serve API |
-| **Self-registration** | None — passive discovery only | Wallet connect → auto-populate | Need agent registration endpoint |
-| **Portability** | Scores live in MoltScore DB only | Onchain attestations, portable | Need onchain score publishing |
-| **Badges** | None | Mintable level badges | Nice to have |
-| **Integration** | None — only MoltScore UI | Apps integrate via API | Need API keys + docs |
-
-### Recommended Evolution Path
-
-#### Phase 1: Agent Passport + Self-Serve API (make it useful)
-- **Agent Passport page** — `/agent/:username` showing full reputation breakdown
-- **Self-registration API** — `POST /api/agent/register` so agents can submit themselves
-- **Agent lookup API** — `GET /api/agent/:username` returning score + all data points
-- **API key system** — so other protocols can query reputation data
-- **Transparent score breakdown** — show exactly what contributed to the score (like Talent Protocol's Credentials view)
-
-#### Phase 2: Data Point Architecture (make it composable)
-- **Atomic Data Points model** — break the score into individual verifiable facts:
-  - `tasks_completed: 1240` (source: Base chain, contract: 0x...)
-  - `debate_win_rate: 0.72` (source: MoltCourt)
-  - `portfolio_value: $12.4K` (source: Bankr)
-  - `account_age: 89 days` (source: Base chain)
-- **Data Point categories:** Performance, Financial, Social, Governance
-- **Signal strength labels:** Each data point rated weak/medium/strong
-- **New data sources:** Expand beyond current 5 — consider:
-  - Cross-chain activity (Ethereum, Arbitrum, etc.)
-  - Protocol-specific reputation (Aave, Uniswap governance)
-  - Social signals (Farcaster, Twitter engagement quality)
-  - Code quality (if agent has open-source repos)
-
-#### Phase 3: Onchain + Composability (make it portable)
-- **Onchain score attestations** — publish scores as EAS attestations or similar
-- **Mintable tier badges** — agents can mint their tier as an NFT (persists even if score drops)
-- **Score gating** — other protocols can gate access based on MoltScore tier
-- **Webhook system** — notify integrators when an agent's tier changes
-- **SDK/Widget** — embeddable MoltScore badge for agent profiles elsewhere
-
-#### Phase 4: Network Effects (make it defensible)
-- **Protocol integrations** — pitch DeFi protocols to use MoltScore for agent access control
-- **Score-gated features** — agents with higher scores get priority in Molt ecosystem
-- **Reputation staking** — agents can stake tokens on their reputation score
-- **Decay + recovery** — scores gradually decay without activity, encouraging ongoing good behavior
-
-### What Makes This Different from Talent Protocol
-
-Talent Protocol is for **humans**. MoltScore is for **agents**. The key differences:
-
-1. **Agents are autonomous** — they don't "sign up" the way humans do. The system needs to discover AND allow self-registration.
-2. **Agent reputation changes faster** — an agent can complete 100 tasks in a day. Scoring frequency matters more.
-3. **Agent trust is binary in practice** — protocols either trust an agent enough to interact with it or they don't. Tier gating is more important than nuanced scores.
-4. **Agents can be verified differently** — code audits, smart contract verification, onchain behavior patterns are all available for agents but not humans.
-5. **Multi-chain is essential** — agents operate across chains more fluidly than humans. Cross-chain reputation aggregation is a stronger selling point.
+**Phase 0 outcome:** MoltScore runs in production, autonomously, at $0/month. Scoring triggers every 15 min via GitHub Actions.
 
 ---
 
-### Previous Technical Tasks (still valid)
+## Phase 1: Reputation API (make it queryable)
 
-#### Priority 1: Critical for product integrity
-- [ ] **1.1** — Make landing page stats dynamic from `/api/status`
-- [ ] **1.2** — Unify basic vs. enhanced scoring systems
-- [ ] **1.3** — Add agent lookup API: `GET /api/agent/:username`
+**Goal:** Other agents and protocols can look up any agent's reputation.
 
-#### Priority 2: Important for stated value proposition
-- [ ] **2.1** — Add API rate limiting
-- [ ] **2.2** — Create Agent Passport page (score breakdown)
-- [ ] **2.3** — Add API documentation
-- [ ] **2.4** — Agent self-registration endpoint
+### 1.1 — Unify scoring systems
+- **What:** Make enhanced scoring the primary system. Basic scoring becomes a fallback when enhanced data isn't available.
+- **Why:** Two parallel systems (basic + enhanced) is confusing. The frontend should use the best available data.
+- **How:**
+  - Update `/api/leaderboard` to prefer `scored_agents_enhanced`, fall back to `scored_agents`
+  - Or merge both into one table with nullable enhanced fields
+- **Files:** `app/api/leaderboard/route.ts`, possibly `lib/cache.ts`
+- **Success:** One endpoint returns the best available data for each agent
 
-#### Priority 3: Technical debt / reliability
-- [ ] **3.1** — Persist `lastProcessedBlock` to database
-- [ ] **3.2** — Database migration system
-- [ ] **3.3** — Error handling + retry logic
-- [ ] **3.4** — API key auth for external consumers
+### 1.2 — Agent lookup API
+- **What:** `GET /api/agent/:username` returns full reputation profile for one agent
+- **Response:**
+  ```json
+  {
+    "username": "oracle_alpha",
+    "wallet": "0x...",
+    "score": 847,
+    "tier": "AA",
+    "components": {
+      "taskPerformance": { "score": 185, "max": 200, "signal": "strong" },
+      "financialReliability": { "score": 240, "max": 300, "signal": "medium" },
+      "disputeRecord": { "score": 150, "max": 150, "signal": "strong" },
+      "ecosystemParticipation": { "score": 160, "max": 200, "signal": "medium" },
+      "intellectualReputation": { "score": 112, "max": 150, "signal": "medium" }
+    },
+    "dataPoints": {
+      "tasksCompleted": 1240,
+      "tasksFailed": 12,
+      "completionRate": 0.99,
+      "disputes": 0,
+      "slashes": 0,
+      "ageDays": 89,
+      "debateWins": 8,
+      "debateLosses": 3,
+      "portfolioValue": 12400,
+      "tradingWinRate": 0.68
+    },
+    "metadata": {
+      "hasOnchainData": true,
+      "hasDebateData": true,
+      "hasBankrData": true,
+      "dataCompleteness": 1.0,
+      "lastUpdated": "2026-02-16T..."
+    }
+  }
+  ```
+- **Files:** New `app/api/agent/[username]/route.ts`
+- **Success:** Any agent or protocol can query `GET /api/agent/oracle_alpha` and get a full reputation profile
+
+### 1.3 — Agent self-registration
+- **What:** `POST /api/agent/register` allows agents to submit themselves
+- **Request:** `{ "username": "my_agent", "wallet": "0x..." }`
+- **What it does:**
+  1. Inserts into `discovered_agents` (or updates wallet if exists)
+  2. Optionally triggers immediate scoring (or waits for next cron cycle)
+  3. Returns current score if already scored, or `{ "status": "queued" }`
+- **Why:** Agents shouldn't have to post on Moltbook to be discovered
+- **Files:** New `app/api/agent/register/route.ts`
+- **Success:** An agent can register itself and appear on the leaderboard after the next scoring cycle
+
+### 1.4 — API key system
+- **What:** Simple API key auth for external consumers
+- **How:**
+  - New `api_keys` table: `key_hash`, `name`, `created_at`, `rate_limit`, `key_type` (read/write)
+  - Check `X-API-KEY` header on protected endpoints
+  - Rate limiting: simple in-memory counter per key (reset every minute)
+- **Files:** New `lib/apiAuth.ts`, new `app/api/keys/route.ts` (for key management), update existing routes
+- **Public endpoints (no key):** `/api/leaderboard` (read-only, rate limited by IP)
+- **Key-required endpoints:** `/api/agent/:username`, `/api/agent/register`
+- **Success:** External protocols can get an API key and query agent reputation
+
+### 1.5 — Dynamic landing page stats
+- **What:** Landing page stats ("50+ VERIFIED AGENTS", "6 REPUTATION TIERS") fetched from real data
+- **How:** Use `/api/status` to get agent count, or fetch at build time via Next.js `fetch`
+- **Files:** Update `app/page.tsx` to be a server component that fetches stats
+- **Success:** Stats reflect actual database state
+
+**Phase 1 outcome:** MoltScore is a queryable reputation API. Agents can self-register. Protocols can look up any agent's full reputation profile via API key.
+
+---
+
+## Phase 2: Agent Passport (make it visible)
+
+**Goal:** Every agent has a public profile page showing their full reputation breakdown.
+
+### 2.1 — Agent Passport page
+- **What:** `/agent/:username` page showing full reputation profile
+- **Layout:**
+  - Header: agent name, wallet, tier badge, overall score
+  - Score breakdown: 5 component progress bars with labels
+  - Data points: individual verified facts with source labels
+  - Activity timeline: when scored, tier changes, etc.
+  - "Verified by MoltScore" badge
+- **Files:** New `app/agent/[username]/page.tsx`
+- **Success:** Visiting `/agent/oracle_alpha` shows a beautiful, detailed reputation profile
+
+### 2.2 — Score component visualization
+- **What:** Visual breakdown of how the score was computed
+- **Show:** Each of the 5 components as a progress bar with:
+  - Component name (Task Performance, Financial Reliability, etc.)
+  - Score / Max (e.g., 185/200)
+  - Signal strength badge (weak/medium/strong)
+  - What data sources contributed
+- **Files:** New `components/ScoreBreakdown.tsx`
+- **Success:** Users and agents can see exactly why a score is what it is
+
+### 2.3 — Data points display
+- **What:** Individual verified facts listed with their source
+- **Format per data point:**
+  - Label: "Tasks Completed"
+  - Value: "1,240"
+  - Source: "Base Chain · Contract 0x1234...5678"
+  - Category: Performance / Financial / Social / Governance
+- **Files:** New `components/DataPoints.tsx`
+- **Success:** Every fact that contributed to the score is visible and traceable to its source
+
+### 2.4 — Shareable passport card
+- **What:** OG image / share card for agent passport pages
+- **How:** Dynamic OG images via Vercel OG (`@vercel/og`) — generates a card image at request time
+- **Shows:** Agent name, score, tier, top stats
+- **Files:** New `app/agent/[username]/opengraph-image.tsx`
+- **Success:** Sharing a passport URL on Twitter/Farcaster shows a rich preview card
+
+### 2.5 — Link passport from leaderboard
+- **What:** Clicking an agent on the leaderboard goes to their passport page
+- **Files:** Update `app/app/page.tsx`, `components/LeaderboardTable.tsx`
+- **Success:** Leaderboard → Agent Passport navigation works
+
+**Phase 2 outcome:** Every agent has a public, shareable profile page showing their full reputation with transparent data point breakdowns.
+
+---
+
+## Phase 3: API Documentation (make it integrable)
+
+**Goal:** Developers can integrate MoltScore into their apps.
+
+### 3.1 — API docs page
+- **What:** `/docs` page with interactive API documentation
+- **Cover:**
+  - Authentication (API keys)
+  - `GET /api/leaderboard` — full leaderboard
+  - `GET /api/agent/:username` — single agent lookup
+  - `POST /api/agent/register` — agent self-registration
+  - `GET /api/status` — system status
+  - Rate limits and error codes
+  - Example requests/responses
+- **Files:** New `app/docs/page.tsx`
+- **Success:** A developer can read the docs and integrate MoltScore in under 30 minutes
+
+### 3.2 — API key request flow
+- **What:** Simple form to request an API key (or auto-generate for authenticated users)
+- **Files:** New `app/docs/request-key/page.tsx` or inline on docs page
+- **Success:** Developers can get an API key without manual approval
+
+**Phase 3 outcome:** MoltScore has public API documentation and a self-serve API key flow.
+
+---
+
+## Phase 4: Composability (make it portable) — Future
+
+**Goal:** Scores become portable, verifiable, and usable across the ecosystem.
+
+### 4.1 — Onchain score attestations
+- Publish scores as EAS (Ethereum Attestation Service) attestations on Base
+- Other protocols can verify scores onchain without trusting MoltScore's API
+
+### 4.2 — Mintable tier badges
+- Agents can mint their tier as an NFT
+- Badge persists even if score later drops (proof of past achievement)
+
+### 4.3 — Embeddable widget / SDK
+- `<MoltScoreBadge agent="oracle_alpha" />` for other apps
+- JavaScript SDK: `moltscore.getScore("oracle_alpha")`
+
+### 4.4 — Webhook system
+- Notify integrators when an agent's tier changes
+- `POST` to registered callback URL with score update payload
+
+### 4.5 — Score gating
+- Provide a simple SDK for protocols to gate features by MoltScore tier
+- Example: "Only agents with tier A or above can access this DeFi vault"
+
+**Phase 4 is future work** — only relevant once Phases 0–3 are live and there's adoption.
+
+---
+
+## Implementation Order (Task-by-Task)
+
+Each task is small, testable, and independent. One at a time.
+
+### Phase 0 — Production ($0 deployment) ✅ COMPLETE
+- [x] **0.1** Create `app/api/cron/score/route.ts` (cron-to-API conversion)
+- [x] **0.2** Create `.github/workflows/score.yml` (15-min cron trigger)
+- [x] **0.3** Document Neon + Vercel setup in README
+- [x] **0.4** Vercel deployment config (maxDuration=60 for Hobby)
+- [x] **0.5** Persist `lastProcessedBlock` + `walletMetrics` to database
+
+### Phase 1 — Reputation API
+- [ ] **1.1** Unify basic + enhanced scoring
+- [ ] **1.2** Build `GET /api/agent/:username` endpoint
+- [ ] **1.3** Build `POST /api/agent/register` endpoint
+- [ ] **1.4** API key system (`lib/apiAuth.ts` + `api_keys` table)
+- [ ] **1.5** Dynamic landing page stats
+
+### Phase 2 — Agent Passport
+- [ ] **2.1** Agent Passport page (`app/agent/[username]/page.tsx`)
+- [ ] **2.2** Score component visualization
+- [ ] **2.3** Data points display
+- [ ] **2.4** OG image for sharing
+- [ ] **2.5** Link passport from leaderboard
+
+### Phase 3 — API Documentation
+- [ ] **3.1** API docs page (`app/docs/page.tsx`)
+- [ ] **3.2** API key request flow
+
+**Total: 17 tasks across 4 phases.**
 
 ---
 
 ## Project Status Board
 
-- [x] Reduce hero button sizes (Executor)
-- [x] Explore backend structure (Planner)
-- [x] Document backend alignment analysis (Planner)
-- [x] Plan credit → reputation pivot (Planner)
-- [x] **Task 1:** Update landing page copy — full reputation framing + enhanced interactivity (Executor)
-- [x] **Task 2:** Update metadata (`layout.tsx`) + backend comment (`lib/score.ts`) (Executor)
-- [x] **Task 3:** Verify app page has no credit language — confirmed clean (Executor)
-- [x] **Task 4:** Update scratchpad documentation (Executor)
-- [x] Final sweep: 0 instances of "credit"/"credibility" in any `.tsx`, `.ts`, `.css`, `.json` file (Executor)
-- [ ] Awaiting user direction on backend improvement priorities
+### Completed
+- [x] Landing page (reputation framing, responsive, animated)
+- [x] Leaderboard app (standard + enhanced views)
+- [x] Scoring engines (basic + enhanced)
+- [x] Agent discovery pipeline
+- [x] Onchain metrics collection
+- [x] MoltCourt + Bankr integrations
+- [x] Autonomous scoring loop
+- [x] Database schema (core + enhanced)
+- [x] Credit → Reputation copy pivot
+
+### Next Up
+- [ ] **Phase 0:** Production infrastructure ($0 deployment)
+- [ ] **Phase 1:** Reputation API
+- [ ] **Phase 2:** Agent Passport
+- [ ] **Phase 3:** API Documentation
 
 ## Executor's Feedback or Assistance Requests
 
-- **Reputation pivot is complete.** All frontend copy, metadata, and backend comments updated.
-- **Enhanced interactivity added:** shimmer effect on stat values, float animation on hero badge, scale-in on stats, gradient glow on feature card hover, stagger-children utility, improved hover states across all interactive elements, trust signal checkmarks in hero, new "How reputation works" footer flow, purple gradient on "agent trust" heading.
-- **Zero lint errors** across all edited files.
-- Awaiting user visual verification and direction on backend improvement priorities.
+- **Phase 0 COMPLETE.** All 5 tasks executed and verified:
+  - `app/api/cron/score/route.ts` — protected API route that runs one full scoring cycle
+  - `.github/workflows/score.yml` — GitHub Actions cron triggering every 15 min
+  - `README.md` — full deployment guide for Vercel + Neon + GitHub Actions at $0
+  - `scripts/initDb.ts` — added `scan_state` + `wallet_metrics` tables
+  - `lib/cache.ts` — `getLastProcessedBlock`, `setLastProcessedBlock`, `getWalletMetricsRow`, `mergeWalletMetrics` now persist to DB
+  - `services/agentMetrics.ts` — updated all calls to use async versions
+  - TypeScript type-check: clean. Lint: clean.
+- Ready for Phase 1 execution upon user approval.
 
 ## Lessons
 
@@ -208,4 +330,7 @@ Talent Protocol is for **humans**. MoltScore is for **agents**. The key differen
 - Gradient text requires inline `style` with `WebkitBackgroundClip` and `WebkitTextFillColor` — Tailwind classes alone can fail.
 - Hero background gradients must be applied directly to the section element (not absolute children with negative z-index) for reliable visibility.
 - Use Tailwind theme-aware utilities (`text-foreground`) instead of arbitrary `[var(--foreground)]` classes when the variable is mapped in `@theme inline`.
-- The backend scoring engines (scoringEngine.ts, enhancedScoringEngine.ts) don't use "credit" terminology — the credit framing was only in frontend copy and a couple of comments. This makes the pivot purely a copy/framing change.
+- The backend scoring engines don't use "credit" terminology — the credit framing was only in frontend copy.
+- Vercel Hobby plan doesn't support cron jobs at 15-min intervals — use GitHub Actions (free for public repos) as external trigger instead.
+- Neon free tier (0.5 GB) is more than enough for thousands of agents.
+- The existing `node-cron` loop logic doesn't need to change — just needs to be callable from an API route for serverless deployment.

@@ -195,7 +195,7 @@ export default function LandingPage() {
           <p className="animate-fade-in-up animate-on-load animate-delay-400 mx-auto mb-8 max-w-2xl text-base leading-relaxed text-muted sm:mb-10 sm:text-lg md:text-xl">
             Rich, verifiable reputation data that makes true agents visible.
             <span className="hidden sm:inline">
-              {" "}One score, clear tiers, full transparency — powered by onchain activity across the Molt ecosystem.
+              {" "}One score, clear tiers, full transparency.
             </span>
           </p>
 
@@ -321,7 +321,7 @@ export default function LandingPage() {
               className="inline-block bg-clip-text text-transparent"
               style={{
                 backgroundImage:
-                  "linear-gradient(90deg, var(--orange), var(--purple))",
+                  "linear-gradient(90deg, var(--orange))",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}

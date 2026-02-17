@@ -42,7 +42,25 @@ async function init() {
     await client.query(`
       CREATE INDEX IF NOT EXISTS scored_agents_score_idx ON scored_agents(score DESC)
     `);
-    console.log("[initDb] Tables and index ready.");
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS scan_state (
+        contract_key TEXT PRIMARY KEY,
+        last_block BIGINT NOT NULL DEFAULT 0,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS wallet_metrics (
+        wallet TEXT PRIMARY KEY,
+        tasks_completed INT NOT NULL DEFAULT 0,
+        tasks_failed INT NOT NULL DEFAULT 0,
+        disputes INT NOT NULL DEFAULT 0,
+        slashes INT NOT NULL DEFAULT 0,
+        first_block_timestamp BIGINT NOT NULL DEFAULT 0,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    console.log("[initDb] Tables and indexes ready.");
   } finally {
     client.release();
     await pool.end();

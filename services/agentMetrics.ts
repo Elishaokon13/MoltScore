@@ -52,8 +52,8 @@ async function ensureIncrementalScan(provider: ethers.Provider): Promise<void> {
   if (latestBlock == null) return;
 
   const startBlock = getStartBlock();
-  const lastTasks = getLastProcessedBlock(MOLT_TASKS_ADDRESS);
-  const lastDisputes = getLastProcessedBlock(MOLT_DISPUTES_ADDRESS);
+  const lastTasks = await getLastProcessedBlock(MOLT_TASKS_ADDRESS);
+  const lastDisputes = await getLastProcessedBlock(MOLT_DISPUTES_ADDRESS);
   const fromBlockTasks = lastTasks != null ? lastTasks + 1 : startBlock;
   const fromBlockDisputes = lastDisputes != null ? lastDisputes + 1 : startBlock;
 
@@ -102,13 +102,13 @@ async function ensureIncrementalScan(provider: ethers.Provider): Promise<void> {
         .map((l) => blockTs.get(l.blockNumber) ?? 0)
         .filter((t) => t > 0);
       const firstTs = timestamps.length > 0 ? Math.min(...timestamps) : 0;
-      mergeWalletMetrics(w, {
+      await mergeWalletMetrics(w, {
         tasksCompleted: counts.completed,
         tasksFailed: counts.failed,
         firstBlockTimestamp: firstTs > 0 ? firstTs : undefined,
       });
     }
-    setLastProcessedBlock(MOLT_TASKS_ADDRESS, latestBlock);
+    await setLastProcessedBlock(MOLT_TASKS_ADDRESS, latestBlock);
   }
 
   if (fromBlockDisputes <= latestBlock) {
@@ -137,9 +137,9 @@ async function ensureIncrementalScan(provider: ethers.Provider): Promise<void> {
       const w = log.topics?.[1] ? walletFromTopic(log.topics[1]) : null;
       if (w) slashesByWallet.set(w, (slashesByWallet.get(w) ?? 0) + 1);
     }
-    for (const [w, n] of disputesByWallet) mergeWalletMetrics(w, { disputes: n });
-    for (const [w, n] of slashesByWallet) mergeWalletMetrics(w, { slashes: n });
-    setLastProcessedBlock(MOLT_DISPUTES_ADDRESS, latestBlock);
+    for (const [w, n] of disputesByWallet) await mergeWalletMetrics(w, { disputes: n });
+    for (const [w, n] of slashesByWallet) await mergeWalletMetrics(w, { slashes: n });
+    await setLastProcessedBlock(MOLT_DISPUTES_ADDRESS, latestBlock);
   }
 }
 
@@ -168,7 +168,7 @@ export async function getAgentMetrics(wallet: string): Promise<AgentMetrics> {
 
   try {
     await ensureIncrementalScan(provider);
-    const row = getWalletMetricsRow(normalizedWallet);
+    const row = await getWalletMetricsRow(normalizedWallet);
     if (!row) {
       console.info(LOG, "getAgentMetrics", { walletShort: normalizedWallet.slice(0, 10) + "...", ...zero });
       return { ...zero, wallet: normalizedWallet };
