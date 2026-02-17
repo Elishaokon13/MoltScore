@@ -1,5 +1,5 @@
 /**
- * MoltScore — Credit Layer for Autonomous Agents
+ * MoltScore — Reputation Layer for Autonomous Agents
  * Scoring logic for reliability and performance.
  */
 

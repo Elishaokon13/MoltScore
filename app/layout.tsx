@@ -16,7 +16,7 @@ const silkscreen = Silkscreen({
 
 export const metadata: Metadata = {
   title: "MoltScore",
-  description: "The Credit Layer for Autonomous Agents. MoltScore ranks onchain AI agents across the Molt ecosystem.",
+  description: "The Reputation Layer for Autonomous Agents. Verifiable reputation data that makes true agents visible across the Molt ecosystem.",
 };
 
 export default function RootLayout({
