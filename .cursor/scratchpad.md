@@ -270,12 +270,12 @@ Each task is small, testable, and independent. One at a time.
 - [x] **0.4** Vercel deployment config (maxDuration=60 for Hobby)
 - [x] **0.5** Persist `lastProcessedBlock` + `walletMetrics` to database
 
-### Phase 1 — Reputation API
-- [ ] **1.1** Unify basic + enhanced scoring
-- [ ] **1.2** Build `GET /api/agent/:username` endpoint
-- [ ] **1.3** Build `POST /api/agent/register` endpoint
-- [ ] **1.4** API key system (`lib/apiAuth.ts` + `api_keys` table)
-- [ ] **1.5** Dynamic landing page stats
+### Phase 1 — Reputation API ✅ COMPLETE
+- [x] **1.1** Unify basic + enhanced scoring
+- [x] **1.2** Build `GET /api/agent/:username` endpoint
+- [x] **1.3** Build `POST /api/agent/register` endpoint
+- [x] **1.4** API key system (`lib/apiAuth.ts` + `api_keys` table)
+- [x] **1.5** Dynamic landing page stats
 
 ### Phase 2 — Agent Passport
 - [ ] **2.1** Agent Passport page (`app/agent/[username]/page.tsx`)
@@ -306,22 +306,22 @@ Each task is small, testable, and independent. One at a time.
 - [x] Credit → Reputation copy pivot
 
 ### Next Up
-- [ ] **Phase 0:** Production infrastructure ($0 deployment)
-- [ ] **Phase 1:** Reputation API
+- [x] **Phase 0:** Production infrastructure ($0 deployment) ✅
+- [x] **Phase 1:** Reputation API ✅
 - [ ] **Phase 2:** Agent Passport
 - [ ] **Phase 3:** API Documentation
 
 ## Executor's Feedback or Assistance Requests
 
-- **Phase 0 COMPLETE.** All 5 tasks executed and verified:
-  - `app/api/cron/score/route.ts` — protected API route that runs one full scoring cycle
-  - `.github/workflows/score.yml` — GitHub Actions cron triggering every 15 min
-  - `README.md` — full deployment guide for Vercel + Neon + GitHub Actions at $0
-  - `scripts/initDb.ts` — added `scan_state` + `wallet_metrics` tables
-  - `lib/cache.ts` — `getLastProcessedBlock`, `setLastProcessedBlock`, `getWalletMetricsRow`, `mergeWalletMetrics` now persist to DB
-  - `services/agentMetrics.ts` — updated all calls to use async versions
-  - TypeScript type-check: clean. Lint: clean.
-- Ready for Phase 1 execution upon user approval.
+- **Phase 0 COMPLETE.** All 5 tasks executed and verified.
+- **Phase 1 COMPLETE.** All 5 tasks executed and verified:
+  - **1.1** `app/api/leaderboard/route.ts` — unified endpoint that prefers enhanced data, falls back to basic. Returns `source: "enhanced" | "basic"` field so consumers know which scoring system was used.
+  - **1.2** `app/api/agent/[username]/route.ts` — full reputation profile for any agent. Returns score, tier, 5-component breakdown with signal strengths, all data points, and metadata. Falls back through enhanced → basic → discovered stages. Returns 404 if agent not found.
+  - **1.3** `app/api/agent/register/route.ts` — self-registration endpoint. Agents POST `{ username, wallet? }` to register. Upserts into `discovered_agents`. Returns current score if already scored, or `"registered"` status if queued for next cycle.
+  - **1.4** `lib/apiAuth.ts` — API key generation (SHA-256 hashed, `ms_` prefixed), validation with daily rate limiting. `app/api/keys/route.ts` — admin-only key generation (protected by `CRON_SECRET`). `api_keys` table added to `scripts/initDb.ts`.
+  - **1.5** `app/page.tsx` — landing page now fetches live agent count and tier count from the database at render time. Stats display dynamically.
+  - **Build:** Clean (`next build` passes, TypeScript passes, no new lint errors).
+- Ready for Phase 2 (Agent Passport) execution upon user approval.
 
 ## Lessons
 

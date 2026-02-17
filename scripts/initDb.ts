@@ -60,6 +60,19 @@ async function init() {
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS api_keys (
+        id SERIAL PRIMARY KEY,
+        key_hash TEXT NOT NULL UNIQUE,
+        key_prefix TEXT NOT NULL,
+        name TEXT NOT NULL,
+        key_type TEXT NOT NULL DEFAULT 'read',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        last_used_at TIMESTAMPTZ,
+        requests_today INT DEFAULT 0,
+        rate_limit_day INT DEFAULT 1000
+      )
+    `);
     console.log("[initDb] Tables and indexes ready.");
   } finally {
     client.release();

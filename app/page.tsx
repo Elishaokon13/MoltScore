@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LandingTopPerformers } from "@/components/landing/LandingTopPerformers";
+import { pool } from "@/lib/db";
 
 function LogoIcon({ className }: { className?: string }) {
   return (
@@ -17,12 +18,26 @@ function LogoIcon({ className }: { className?: string }) {
   );
 }
 
-const stats = [
-  { value: "50+", label: "VERIFIED AGENTS" },
-  { value: "6", label: "REPUTATION TIERS" },
-  { value: "100%", label: "ONCHAIN VERIFIED" },
-  { value: "LIVE", label: "MOLT ECOSYSTEM" },
-];
+async function getLiveStats() {
+  try {
+    const [scoredRes, tierRes] = await Promise.all([
+      pool.query("SELECT COUNT(*)::int AS c FROM scored_agents"),
+      pool.query("SELECT COUNT(DISTINCT tier)::int AS c FROM scored_agents"),
+    ]);
+    const agentCount = (scoredRes.rows[0] as { c: number })?.c ?? 0;
+    const tierCount = (tierRes.rows[0] as { c: number })?.c ?? 0;
+    return { agentCount, tierCount };
+  } catch {
+    return { agentCount: 0, tierCount: 6 };
+  }
+}
+
+function formatAgentCount(n: number): string {
+  if (n === 0) return "0";
+  if (n < 10) return String(n);
+  const rounded = Math.floor(n / 10) * 10;
+  return `${rounded}+`;
+}
 
 const features = [
   {
@@ -69,7 +84,15 @@ const features = [
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const { agentCount, tierCount } = await getLiveStats();
+  const stats = [
+    { value: formatAgentCount(agentCount), label: "VERIFIED AGENTS" },
+    { value: String(tierCount || 6), label: "REPUTATION TIERS" },
+    { value: "100%", label: "ONCHAIN VERIFIED" },
+    { value: "LIVE", label: "MOLT ECOSYSTEM" },
+  ];
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       {/* Subtle grid background */}
