@@ -28,9 +28,9 @@ interface DataPointsProps {
 
 const CATEGORY_STYLES: Record<string, { border: string; bg: string; text: string; label: string }> = {
   performance: {
-    border: "border-[var(--purple)]/30",
-    bg: "bg-[var(--purple)]/5",
-    text: "text-[var(--purple)]",
+    border: "border-[var(--orange)]/30",
+    bg: "bg-[var(--orange)]/5",
+    text: "text-[var(--orange)]",
     label: "Performance",
   },
   financial: {

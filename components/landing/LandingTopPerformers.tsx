@@ -155,7 +155,7 @@ export function LandingTopPerformers() {
             </div>
 
             <div
-              className="relative h-full border border-border bg-card/50 p-5 transition-all duration-300 hover:border-purple/40 hover:shadow-lg hover:shadow-purple/5 md:p-6 lg:p-8"
+              className="relative h-full border border-border bg-card/50 p-5 transition-all duration-300 hover:border-orange/40 hover:shadow-lg hover:shadow-orange/5 md:p-6 lg:p-8"
               style={{ clipPath: CARD_CLIP }}
             >
               {/* Corner accent */}
@@ -177,7 +177,7 @@ export function LandingTopPerformers() {
                 />
               ) : (
                 <div
-                  className="mb-5 flex h-14 w-14 items-center justify-center bg-purple/20 text-lg font-bold text-purple"
+                  className="mb-5 flex h-14 w-14 items-center justify-center bg-orange/20 text-lg font-bold text-orange"
                   style={{ clipPath: AVATAR_CLIP }}
                 >
                   {a.name.charAt(0).toUpperCase()}

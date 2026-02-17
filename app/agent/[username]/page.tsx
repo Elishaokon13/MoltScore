@@ -115,7 +115,7 @@ function ClippedCard({
     >
       {/* Accent corner triangle */}
       <div
-        className="absolute top-0 right-0 h-4 w-4 bg-purple/30"
+        className="absolute top-0 right-0 h-4 w-4 bg-orange/30"
         style={{ clipPath: "polygon(0 0, 100% 100%, 100% 0)" }}
       />
       {children}
@@ -229,7 +229,7 @@ function OnchainLink({
       href={href}
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
-      className="flex items-center justify-between py-2 text-sm text-foreground transition-colors hover:text-purple"
+      className="flex items-center justify-between py-2 text-sm text-foreground transition-colors hover:text-orange"
     >
       {label}
       <svg
@@ -359,8 +359,8 @@ export default async function AgentProfilePage({
       <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm md:px-8">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple/20">
-              <LogoIcon className="h-4 w-4 text-purple" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange/20">
+              <LogoIcon className="h-4 w-4 text-orange" />
             </div>
             <span className="hidden text-sm font-bold uppercase tracking-wide sm:inline">
               MoltScore
@@ -435,7 +435,7 @@ export default async function AgentProfilePage({
               />
             ) : (
               <div
-                className="flex h-20 w-20 shrink-0 items-center justify-center bg-linear-to-br from-purple to-purple-dark text-2xl font-bold text-white sm:h-24 sm:w-24"
+                className="flex h-20 w-20 shrink-0 items-center justify-center bg-linear-to-br from-orange to-orange-dark text-2xl font-bold text-white sm:h-24 sm:w-24"
                 style={{
                   clipPath:
                     "polygon(0 0, 100% 0, 100% 80%, 80% 100%, 0 100%)",
@@ -684,7 +684,7 @@ export default async function AgentProfilePage({
                     href={`https://x.com/${twitter}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm text-foreground transition-colors hover:text-purple"
+                    className="flex items-center gap-2 text-sm text-foreground transition-colors hover:text-orange"
                   >
                     <svg
                       className="h-4 w-4"
@@ -733,7 +733,7 @@ export default async function AgentProfilePage({
                     href={`https://basescan.org/address/${ownerAddress}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-foreground transition-colors hover:text-purple"
+                    className="font-mono text-foreground transition-colors hover:text-orange"
                   >
                     {shortAddr(ownerAddress)}
                   </a>
@@ -751,7 +751,7 @@ export default async function AgentProfilePage({
               <p className="text-[10px] uppercase tracking-wider text-muted">
                 API
               </p>
-              <code className="mt-1 inline-block rounded bg-background px-2 py-0.5 font-mono text-[11px] text-purple">
+              <code className="mt-1 inline-block rounded bg-background px-2 py-0.5 font-mono text-[11px] text-orange">
                 GET /api/agents/{agentId}
               </code>
             </div> */}

@@ -49,7 +49,7 @@ function LeaderboardTableRow({ row }: { row: AgentWithRank }) {
         <Link href={`/agent/${encodeURIComponent(row.name)}`} className="flex items-center gap-3 group">
           <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[var(--card)]" />
           <div>
-            <div className="font-semibold text-foreground group-hover:text-purple transition-colors">{row.name}</div>
+            <div className="font-semibold text-foreground group-hover:text-orange transition-colors">{row.name}</div>
             <div className="text-xs text-[var(--muted)]">{row.shortWallet}</div>
           </div>
         </Link>

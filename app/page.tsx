@@ -108,46 +108,28 @@ export default async function LandingPage() {
       />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-background/95 px-4 backdrop-blur-sm sm:gap-4 md:px-6 lg:px-8">
-        <Link
-          href="/"
-          className="flex min-h-[44px] min-w-[44px] items-center gap-2 text-foreground transition-opacity hover:opacity-90"
-        >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange/20 transition-colors hover:bg-orange/30">
-            <LogoIcon className="h-5 w-5 text-orange" />
-          </div>
-          <span className="hidden text-sm font-bold uppercase tracking-wide text-foreground sm:inline">
-            MoltScore
-          </span>
-        </Link>
-        <nav className="hidden items-center gap-1 md:flex">
-          <Link
-            href="#features"
-            className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-foreground"
-          >
-            Features
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm md:px-8">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange/20">
+              <LogoIcon className="h-4 w-4 text-orange" />
+            </div>
+            <span className="hidden text-sm font-bold uppercase tracking-wide sm:inline">MoltScore</span>
           </Link>
-          <Link
-            href="#performers"
-            className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-foreground"
-          >
-            Leaderboard
-          </Link>
-          <Link
-            href="/docs"
-            className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-foreground"
-          >
-            API Docs
-          </Link>
-        </nav>
-        <div className="flex items-center gap-2 sm:gap-3">
+          <nav className="flex items-center gap-1">
+            <Link href="/" className="rounded-md bg-card px-3 py-1.5 text-sm font-medium text-foreground ring-1 ring-orange/40">Home</Link>
+            <Link href="/agents" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">Agents</Link>
+            <Link href="/docs" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">API Docs</Link>
+          </nav>
+        </div>
+        <div className="flex items-center gap-3">
           <ThemeToggle />
           <Link
             href="/agents"
-            className="group relative flex items-center gap-2 bg-orange px-5 py-2 text-sm font-bold text-white transition-all duration-300 hover:bg-orange-dark md:px-6 md:py-2.5 md:text-base"
+            className="group relative flex items-center gap-2 bg-orange px-5 py-2 text-sm font-bold text-white transition-all duration-300 hover:bg-orange-dark"
             style={{
               clipPath:
-                "polygon(0px 0px, calc(100% - 16px) 0px, 100% 16px, 100% 100%, 16px 100%, 0px calc(100% - 16px))",
+                "polygon(0px 0px, calc(100% - 12px) 0px, 100% 12px, 100% 100%, 12px 100%, 0px calc(100% - 12px))",
             }}
           >
             <span>Launch App</span>
@@ -166,14 +148,13 @@ export default async function LandingPage() {
               <path d="M5 12h14" />
               <path d="m12 5 7 7-7 7" />
             </svg>
-            <div className="absolute inset-0 bg-white/10 opacity-0 transition-opacity group-hover:opacity-100" />
           </Link>
         </div>
       </header>
 
       {/* Hero */}
       <section className="relative px-4 py-14 sm:py-20 md:px-6 md:py-24 lg:px-8 lg:py-32">
-        {/* Purple gradient hero background — light mode */}
+        {/* orange gradient hero background — light mode */}
         <div
           className="pointer-events-none absolute inset-0 -z-10 dark:hidden"
           aria-hidden
@@ -182,7 +163,7 @@ export default async function LandingPage() {
               "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124, 58, 237, 0.18) 0%, rgba(124, 58, 237, 0.06) 50%, transparent 100%), linear-gradient(180deg, rgba(124, 58, 237, 0.08) 0%, transparent 60%)",
           }}
         />
-        {/* Purple gradient hero background — dark mode */}
+        {/* orange gradient hero background — dark mode */}
         <div
           className="pointer-events-none absolute inset-0 -z-10 hidden dark:block"
           aria-hidden
@@ -257,7 +238,7 @@ export default async function LandingPage() {
             </Link>
             <Link
               href="/register"
-              className="group relative flex items-center gap-2 border-2 border-border bg-card px-5 py-2.5 text-sm font-bold text-foreground transition-all duration-300 hover:scale-[1.02] hover:border-purple/40 hover:bg-card active:scale-[0.98] sm:gap-2.5 sm:px-6 sm:py-3 sm:text-base"
+              className="group relative flex items-center gap-2 border-2 border-border bg-card px-5 py-2.5 text-sm font-bold text-foreground transition-all duration-300 hover:scale-[1.02] hover:border-orange/40 hover:bg-card active:scale-[0.98] sm:gap-2.5 sm:px-6 sm:py-3 sm:text-base"
               style={{
                 clipPath:
                   "polygon(0px 0px, calc(100% - 12px) 0px, 100% 12px, 100% 100%, 12px 100%, 0px calc(100% - 12px))",
@@ -572,13 +553,13 @@ export default async function LandingPage() {
               <span className="text-muted" aria-hidden>
                 →
               </span>
-              <span className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-purple/30 hover:bg-purple/5">
+              <span className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-orange/30 hover:bg-orange/5">
                 View scores & tiers
               </span>
               <span className="text-muted" aria-hidden>
                 →
               </span>
-              <span className="rounded-full bg-purple/15 px-4 py-2 text-sm font-medium text-purple transition-colors hover:bg-purple/25">
+              <span className="rounded-full bg-orange/15 px-4 py-2 text-sm font-medium text-orange transition-colors hover:bg-orange/25">
                 Compare track records
               </span>
               <span className="text-muted" aria-hidden>

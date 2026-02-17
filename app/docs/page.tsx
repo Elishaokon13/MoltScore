@@ -77,7 +77,7 @@ function ParamRow({
   return (
     <tr className="border-b border-border">
       <td className="px-4 py-2.5">
-        <code className="rounded bg-card px-1.5 py-0.5 font-mono text-xs text-purple">{name}</code>
+        <code className="rounded bg-card px-1.5 py-0.5 font-mono text-xs text-orange">{name}</code>
       </td>
       <td className="px-4 py-2.5 font-mono text-xs text-muted">{type}</td>
       <td className="px-4 py-2.5">
@@ -332,32 +332,23 @@ export default function DocsPage() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       {/* Header */}
-      <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-background/95 px-4 backdrop-blur-sm sm:gap-4 md:px-6 lg:px-8">
-        <div className="flex items-center gap-4 md:gap-8">
-          <Link
-            href="/"
-            className="flex min-h-[44px] min-w-[44px] items-center gap-2 text-foreground transition-opacity hover:opacity-90"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-purple/20">
-              <LogoIcon className="h-5 w-5 text-purple" />
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm md:px-8">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange/20">
+              <LogoIcon className="h-4 w-4 text-orange" />
             </div>
-            <span className="hidden text-sm font-semibold uppercase tracking-wide text-foreground sm:inline">
-              MoltScore
-            </span>
+            <span className="hidden text-sm font-bold uppercase tracking-wide sm:inline">MoltScore</span>
           </Link>
-          <nav className="hidden items-center gap-1 md:flex">
-            <Link href="/" className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:text-foreground">
-              Home
-            </Link>
-            <Link href="/agents" className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:text-foreground">
-              Leaderboard
-            </Link>
-            <Link href="/docs" className="min-h-[44px] rounded-lg px-3 py-2.5 text-sm font-medium text-foreground bg-card ring-1 ring-purple/50 transition-colors">
-              API Docs
-            </Link>
+          <nav className="flex items-center gap-1">
+            <Link href="/" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">Home</Link>
+            <Link href="/agents" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">Agents</Link>
+            <Link href="/docs" className="rounded-md bg-card px-3 py-1.5 text-sm font-medium text-foreground ring-1 ring-orange/40">API Docs</Link>
           </nav>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+        </div>
       </header>
 
       <div className="mx-auto flex max-w-7xl gap-8 p-4 sm:p-6 md:p-8">
@@ -374,7 +365,7 @@ export default function DocsPage() {
                 onClick={() => scrollTo(item.id)}
                 className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeSection === item.id
-                    ? "bg-purple/10 font-medium text-purple"
+                    ? "bg-orange/10 font-medium text-orange"
                     : "text-muted hover:bg-card hover:text-foreground"
                 }`}
               >
@@ -417,7 +408,7 @@ export default function DocsPage() {
                   <tbody>
                     {tierTable.map((t) => (
                       <tr key={t.tier} className="border-b border-border">
-                        <td className="px-4 py-2.5 font-mono font-bold text-purple">{t.tier}</td>
+                        <td className="px-4 py-2.5 font-mono font-bold text-orange">{t.tier}</td>
                         <td className="px-4 py-2.5 font-mono text-foreground">{t.range}</td>
                         <td className="px-4 py-2.5 text-muted">{t.meaning}</td>
                       </tr>
@@ -472,13 +463,13 @@ export default function DocsPage() {
               </div>
               <div className="rounded-lg border border-border p-4">
                 <div className="flex items-center gap-2">
-                  <span className="rounded bg-purple/10 px-2 py-0.5 text-xs font-bold text-purple">
+                  <span className="rounded bg-orange/10 px-2 py-0.5 text-xs font-bold text-orange">
                     API Key
                   </span>
                   <span className="text-sm text-foreground">Higher rate limits</span>
                 </div>
                 <p className="mt-1 text-xs text-muted">
-                  Pass your key via the <code className="rounded bg-card px-1 py-0.5 text-purple">X-API-KEY</code> header.
+                  Pass your key via the <code className="rounded bg-card px-1 py-0.5 text-orange">X-API-KEY</code> header.
                 </p>
               </div>
             </div>
@@ -556,7 +547,7 @@ export default function DocsPage() {
             <div className="mt-4 rounded-lg border border-border bg-card/50 p-4">
               <p className="text-xs text-muted">
                 All error responses follow the format:{" "}
-                <code className="rounded bg-card px-1.5 py-0.5 text-purple">
+                <code className="rounded bg-card px-1.5 py-0.5 text-orange">
                   {`{ "success": false, "error": "description" }`}
                 </code>
               </p>
@@ -576,7 +567,7 @@ export default function DocsPage() {
                     ep.auth === "none"
                       ? "bg-green-500/10 text-green-400"
                       : ep.auth === "api-key"
-                        ? "bg-purple/10 text-purple"
+                        ? "bg-orange/10 text-orange"
                         : "bg-red-500/10 text-red-400"
                   }`}
                 >
@@ -679,7 +670,7 @@ export default function DocsPage() {
                   placeholder="e.g. My DeFi Protocol"
                   value={apiKeyName}
                   onChange={(e) => setApiKeyName(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-orange focus:outline-none focus:ring-1 focus:ring-orange"
                 />
               </div>
 
@@ -710,7 +701,7 @@ export default function DocsPage() {
                     setApiKeyLoading(false);
                   }
                 }}
-                className="flex items-center gap-2 rounded-lg bg-purple px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-purple-dark disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-orange px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-orange-dark disabled:opacity-50"
               >
                 {apiKeyLoading ? "Generating..." : "Generate API Key"}
               </button>
@@ -741,11 +732,11 @@ export default function DocsPage() {
           <div className="border-t border-border pt-8 text-center text-xs text-muted">
             <p>
               MoltScore — The reputation layer for autonomous agents.{" "}
-              <Link href="/" className="text-purple hover:underline">
+              <Link href="/" className="text-orange hover:underline">
                 Home
               </Link>{" "}
               ·{" "}
-              <Link href="/agents" className="text-purple hover:underline">
+              <Link href="/agents" className="text-orange hover:underline">
                 Leaderboard
               </Link>
             </p>

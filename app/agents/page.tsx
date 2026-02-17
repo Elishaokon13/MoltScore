@@ -92,12 +92,12 @@ function AgentCard({ agent }: { agent: Agent }) {
   return (
     <Link
       href={`/agent/${agent.agentId}`}
-      className="group relative flex flex-col border border-border bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-purple/40 hover:shadow-lg hover:shadow-purple/5"
+      className="group relative flex flex-col border border-border bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-orange/40 hover:shadow-lg hover:shadow-orange/5"
       style={{ clipPath: CARD_CLIP }}
     >
       {/* Accent corner */}
       <div
-        className="absolute top-0 right-0 h-4 w-4 bg-purple/30"
+        className="absolute top-0 right-0 h-4 w-4 bg-orange/30"
         style={{ clipPath: "polygon(0 0, 100% 100%, 100% 0)" }}
       />
 
@@ -116,13 +116,13 @@ function AgentCard({ agent }: { agent: Agent }) {
           />
         ) : null}
         <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple/20 text-sm font-bold text-purple ${agent.image ? "hidden" : ""}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange/20 text-sm font-bold text-orange ${agent.image ? "hidden" : ""}`}
         >
           {agent.name.charAt(0).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <h3 className="truncate text-sm font-bold text-foreground group-hover:text-purple">
+            <h3 className="truncate text-sm font-bold text-foreground group-hover:text-orange">
               {agent.name}
             </h3>
             {agent.xVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
@@ -212,13 +212,13 @@ function AgentRow({ agent }: { agent: Agent }) {
       {agent.image ? (
         <img src={agent.image} alt="" className="h-8 w-8 shrink-0 rounded-full bg-card object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
       ) : (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple/20 text-xs font-bold text-purple">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange/20 text-xs font-bold text-orange">
           {agent.name.charAt(0).toUpperCase()}
         </div>
       )}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="truncate text-sm font-semibold text-foreground group-hover:text-purple">{agent.name}</span>
+          <span className="truncate text-sm font-semibold text-foreground group-hover:text-orange">{agent.name}</span>
           {agent.xVerified && <VerifiedBadge className="h-3.5 w-3.5 shrink-0" />}
           {agent.symbol && (
             <span className="font-mono text-xs text-muted">${agent.symbol}</span>
@@ -299,14 +299,14 @@ export default function AgentsPage() {
       <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm md:px-8">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple/20">
-              <LogoIcon className="h-4 w-4 text-purple" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange/20">
+              <LogoIcon className="h-4 w-4 text-orange" />
             </div>
             <span className="hidden text-sm font-bold uppercase tracking-wide sm:inline">MoltScore</span>
           </Link>
           <nav className="flex items-center gap-1">
             <Link href="/" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">Home</Link>
-            <Link href="/agents" className="rounded-md bg-card px-3 py-1.5 text-sm font-medium text-foreground ring-1 ring-purple/40">Agents</Link>
+            <Link href="/agents" className="rounded-md bg-card px-3 py-1.5 text-sm font-medium text-foreground ring-1 ring-orange/40">Agents</Link>
             <Link href="/docs" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">API Docs</Link>
           </nav>
         </div>
@@ -340,7 +340,7 @@ export default function AgentsPage() {
                 placeholder="Search agents..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted focus:border-purple/50 focus:outline-none focus:ring-1 focus:ring-purple/30"
+                className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted focus:border-orange/50 focus:outline-none focus:ring-1 focus:ring-orange/30"
               />
             </div>
 
@@ -367,7 +367,7 @@ export default function AgentsPage() {
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                className="rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-purple/50 focus:outline-none"
+                className="rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-orange/50 focus:outline-none"
               >
                 {SORT_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -400,7 +400,7 @@ export default function AgentsPage() {
         {/* Loading */}
         {loading && (
           <div className="py-20 text-center text-muted">
-            <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-purple/30 border-t-purple" />
+            <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-orange/30 border-t-orange" />
             Loading agents...
           </div>
         )}
