@@ -60,6 +60,40 @@ async function init() {
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);
+    // Mandate Protocol: agents discovered from Identity Registry
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS mandate_agents (
+        agent_id INT PRIMARY KEY,
+        owner_address TEXT NOT NULL,
+        wallet_address TEXT,
+        agent_uri TEXT,
+        -- Escrow metrics (filled by mandateEscrow.ts)
+        mandates_as_worker INT NOT NULL DEFAULT 0,
+        mandates_as_creator INT NOT NULL DEFAULT 0,
+        mandates_completed INT NOT NULL DEFAULT 0,
+        mandates_disputed INT NOT NULL DEFAULT 0,
+        mandates_cancelled INT NOT NULL DEFAULT 0,
+        total_earned_wei TEXT NOT NULL DEFAULT '0',
+        -- Reputation metrics (filled by mandateReputation.ts)
+        feedback_count INT NOT NULL DEFAULT 0,
+        avg_feedback_value FLOAT NOT NULL DEFAULT 0,
+        unique_reviewers INT NOT NULL DEFAULT 0,
+        -- Scoring (filled by mandateScoringEngine.ts)
+        score INT,
+        tier TEXT,
+        score_components JSONB,
+        last_scored_at TIMESTAMPTZ,
+        -- Metadata
+        discovered_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS mandate_agents_score_idx ON mandate_agents(score DESC NULLS LAST)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS mandate_agents_wallet_idx ON mandate_agents(wallet_address)
+    `);
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS api_keys (
         id SERIAL PRIMARY KEY,

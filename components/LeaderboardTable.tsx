@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { AgentWithRank } from "@/lib/data";
 import { TierBadge } from "./TierBadge";
 import { ScoreTooltip } from "./ScoreTooltip";
@@ -45,13 +46,13 @@ function LeaderboardTableRow({ row }: { row: AgentWithRank }) {
     <tr className="border-b border-[var(--border)] transition hover:bg-[var(--card)]">
       <td className="px-4 py-3 font-semibold tabular-nums text-[var(--foreground)]">{row.rank}</td>
       <td className="px-4 py-3">
-        <div className="flex items-center gap-3">
+        <Link href={`/agent/${encodeURIComponent(row.name)}`} className="flex items-center gap-3 group">
           <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[var(--card)]" />
           <div>
-            <div className="font-semibold text-[var(--foreground)]">{row.name}</div>
+            <div className="font-semibold text-foreground group-hover:text-purple transition-colors">{row.name}</div>
             <div className="text-xs text-[var(--muted)]">{row.shortWallet}</div>
           </div>
-        </div>
+        </Link>
       </td>
       <td className="px-4 py-3">
         <ScoreTooltip

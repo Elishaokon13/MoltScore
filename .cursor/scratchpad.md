@@ -231,31 +231,195 @@ MoltScore is the **reputation layer for autonomous agents** — unlocking rich, 
 
 ---
 
-## Phase 4: Composability (make it portable) — Future
+## Phase 4: Mandate Protocol Integration (make it real)
 
-**Goal:** Scores become portable, verifiable, and usable across the ecosystem.
+**Goal:** Plug MoltScore into Mandate Protocol's onchain infrastructure — real contracts, real escrow data, real reputation.
 
-### 4.1 — Onchain score attestations
-- Publish scores as EAS (Ethereum Attestation Service) attestations on Base
-- Other protocols can verify scores onchain without trusting MoltScore's API
+### Discovery: Mandate Protocol (moltlaunch.com/protocol)
 
-### 4.2 — Mintable tier badges
-- Agents can mint their tier as an NFT
-- Badge persists even if score later drops (proof of past achievement)
+Mandate Protocol is **open infrastructure for agent work** on Base. It has exactly the onchain primitives MoltScore needs:
 
-### 4.3 — Embeddable widget / SDK
+| Mandate Component | Contract | What it gives MoltScore |
+|---|---|---|
+| **ERC-8004 Identity** | `0x8004...a432` | Onchain agent registry — skills, endpoints, metadata. Replaces our Moltbook-only discovery. |
+| **MandateEscrowV5** | `0x5Df1...50Ee` | Trustless task escrow — ETH locked until delivery + review. Rich source of task completion, disputes, cancellations, payment amounts. |
+| **ERC-8004 Reputation** | `0x8004...9b63` | Onchain reviews tied to real payments. Can't be faked. Perfect signal for our scoring engine. |
+
+**Why this matters:**
+- Our current `MOLT_TASKS_ADDRESS` and `MOLT_DISPUTES_ADDRESS` are **placeholders** (`0x0000...0001`, `0x0000...0002`). Mandate provides the real contracts.
+- Our current scoring scans for generic `TaskCompleted`/`TaskFailed` events. Mandate's escrow has a real task lifecycle: `requested → quoted → accepted → submitted → completed`.
+- Mandate's ERC-8004 Reputation gives us **payment-verified reviews** — the strongest possible reputation signal.
+- Mandate is permissionless and multi-frontend — scores written there become visible everywhere.
+
+**This replaces our original Phase 4 plan** (EAS attestations, custom NFTs). Mandate already has the infrastructure we were going to build.
+
+### Contract Details (from BaseScan verified source)
+
+**Identity Registry** (`0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`)
+- Implementation: `IdentityRegistryUpgradeable` at `0x7274e874ca62410a93bd8bf61c69d8045e399c02`
+- ERC-721 NFT ("AgentIdentity", "AGENT"), ~20,000 agents registered
+- Key events:
+  - `Registered(uint256 indexed agentId, string agentURI, address indexed owner)`
+  - `MetadataSet(uint256 indexed agentId, string indexed indexedMetadataKey, string metadataKey, bytes metadataValue)`
+- Key read functions:
+  - `getAgentWallet(uint256 agentId) → address`
+  - `getMetadata(uint256 agentId, string metadataKey) → bytes`
+  - `tokenURI(uint256 agentId) → string` (agent's skill/metadata URI)
+  - `ownerOf(uint256 agentId) → address`
+
+**Escrow / MandateEscrowV5** (`0x5Df1ffa02c8515a0Fed7d0e5d6375FcD2c1950Ee`)
+- Implementation at `0xa30afbc6dbd79c8d8384ea52da9d4f84cf5464a3` (unverified, but bytecode decompiled)
+- ~135 transactions, real ETH escrow ($63+ held)
+- Mandate struct: `{ creator, worker, resolver, amount, createdAt, submittedAt, disputeDeposit, status }`
+- Status enum: Pending(0), Quoted(1), Submitted(2), Disputed(3), Completed(4), Cancelled(5), Refunded(6), Rejected(7)
+- Key function selectors:
+  - `0x7f8698e6` — createMandate (payable, locks ETH)
+  - `0x1c342735` — submitWork
+  - `0xda4d18b6` — acceptMandate / quote
+  - `release()` — releases escrow to worker
+  - `0x2d83549c` / `0xf023b811` — mandate getters (returns full struct)
+  - `0x5de28ae0` — getStatus(uint256)
+- Escrow events (derived from bytecode):
+  - MandateCreated (indexed mandateId, indexed creator, amount)
+  - WorkSubmitted (indexed mandateId, indexed worker, deadline)
+  - FundsReleased (indexed mandateId, indexed to, amount)
+  - DisputeRaised (indexed mandateId, ...)
+  - MandateCompleted / DisputeResolved
+
+**Reputation Registry** (`0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`)
+- Implementation: `ReputationRegistryUpgradeable` at `0x16e0FA7f7c56b9a767e34b192b51f921BE31dA34` (VERIFIED)
+- ~5,044 transactions, all `Give Feedback` / `Append Response`
+- Key events:
+  - `NewFeedback(uint256 indexed agentId, address indexed clientAddress, uint64 feedbackIndex, int128 value, uint8 valueDecimals, string indexed indexedTag1, string tag1, string tag2, string endpoint, string feedbackURI, bytes32 feedbackHash)`
+  - `FeedbackRevoked(uint256 indexed agentId, address indexed clientAddress, uint64 indexed feedbackIndex)`
+  - `ResponseAppended(uint256 indexed agentId, address indexed clientAddress, uint64 feedbackIndex, address indexed responder, string responseURI, bytes32 responseHash)`
+- Key read functions:
+  - `getClients(uint256 agentId) → address[]` — all clients who gave feedback
+  - `readFeedback(agentId, client, index) → (value, valueDecimals, tag1, tag2, isRevoked)`
+  - `readAllFeedback(agentId, clients[], tag1, tag2, includeRevoked)` — bulk read
+  - `getSummary(agentId, clients[], tag1, tag2) → (count, summaryValue, summaryValueDecimals)` — aggregated
+  - `getLastIndex(agentId, client) → uint64`
+- Feedback struct: `{ value (int128), valueDecimals (uint8), isRevoked (bool), tag1, tag2 }`
+- Anti-spam: Self-feedback blocked (checks Identity ownership)
+
+---
+
+### REFACTOR: Mandate-Only Architecture
+
+**Strategy:** Replace Moltbook/MoltCourt/Bankr with onchain Mandate data. All 3 contracts are **read-only** from our side (scan events + call view functions). No wallet/gas needed.
+
+**What changes:**
+| Current Source | Replacement | Status |
+|---|---|---|
+| Moltbook feed crawling (`agentDiscovery.ts`) | Identity Registry `Registered` events | Replace |
+| Placeholder contracts (`agentMetrics.ts`) | Escrow mandate data (struct reads) | Replace |
+| MoltCourt debates (`moltcourtIntegration.ts`, `moltcourtSync.ts`) | Reputation Registry feedback | Replace |
+| Bankr financial data (`bankrIntegration.ts`) | Escrow payment amounts | Replace |
+| Moltbook reply engine (`conversationEngine.ts`) | Remove (no more Moltbook interaction) | Remove |
+
+**What stays:**
+- Database (PostgreSQL/Neon) — schema updates needed
+- API routes (`/api/leaderboard`, `/api/agent/:username`, etc.)
+- Frontend (landing page, leaderboard, agent passport, docs)
+- API key system
+- GitHub Actions cron trigger
+- Vercel hosting
+
+---
+
+### 4.1 — Create Mandate contract service layer
+- **What:** Create `services/mandateContracts.ts` with ethers.js contract instances and minimal ABIs for all 3 contracts
+- **ABIs needed:**
+  - Identity: `Registered` event, `getAgentWallet`, `tokenURI`, `ownerOf`, `getMetadata` (from verified source)
+  - Escrow: mandate getter (address `0x2d83549c` or `0xf023b811`), `getStatus` (from bytecode analysis)
+  - Reputation: `getClients`, `readAllFeedback`, `getSummary`, `getLastIndex` (from verified source)
+- **Files:** New `services/mandateContracts.ts`
+- **Success:** Can call `identityContract.getAgentWallet(agentId)`, `reputationContract.getSummary(agentId, ...)`, read escrow mandates from TypeScript
+
+### 4.2 — Build Identity-based agent discovery
+- **What:** Replace Moltbook discovery with scanning `Registered` events from Identity Registry
+- **How:**
+  1. Scan `Registered(uint256 indexed agentId, string agentURI, address indexed owner)` events
+  2. For each agent: store `agentId`, `owner`, `agentURI`, `wallet` (from `getAgentWallet`)
+  3. If `agentURI` points to JSON metadata (IPFS/HTTP), optionally fetch it for agent name/skills
+  4. Use incremental block scanning (persist `lastProcessedBlock` like current `agentMetrics.ts`)
+- **DB changes:** Add `mandate_agent_id` (uint), `agent_uri`, `mandate_owner` columns to `discovered_agents`
+- **Files:** New `services/mandateDiscovery.ts`, update `scripts/initDb.ts`
+- **Success:** ~20,000 agents from Identity Registry are discoverable
+
+### 4.3 — Build Escrow-based metrics collection
+- **What:** For each discovered agent's wallet, query the Escrow contract for mandate data
+- **How:**
+  1. Since escrow is unverified, use minimal ABI fragments to call the mandate getter
+  2. Scan escrow events to find mandateIds where agent's wallet is `creator` or `worker`
+  3. For each mandate: read status, amount, createdAt, submittedAt
+  4. Compute: mandates_created, mandates_completed, mandates_disputed, mandates_cancelled, total_earned_eth
+- **Files:** New `services/mandateEscrow.ts`
+- **Success:** For each agent, we know how many mandates they've created/completed, total ETH earned, dispute rate
+
+### 4.4 — Build Reputation-based review ingestion
+- **What:** For each agent's `mandate_agent_id`, query Reputation Registry for feedback
+- **How:**
+  1. Call `getClients(agentId)` to get all reviewers
+  2. Call `getSummary(agentId, clients, "", "")` for aggregate score
+  3. Call `readAllFeedback(agentId, clients, "", "", false)` for individual reviews
+  4. Store: feedback_count, avg_rating, positive_count, negative_count, unique_reviewers
+- **Files:** New `services/mandateReputation.ts`
+- **Success:** For each agent, we have onchain peer review data
+
+### 4.5 — Rewrite scoring engine for Mandate data
+- **What:** Replace the 5-component scoring with Mandate-native signals
+- **New scoring model (300–950 scale):**
+  1. **Task Performance** (30%): mandates completed / total, completion rate, total ETH earned
+  2. **Peer Reputation** (30%): avg feedback value, feedback count, unique reviewers, no revoked reviews
+  3. **Escrow Reliability** (20%): disputes avoided, funds released cleanly, no cancellations
+  4. **Economic Activity** (10%): total mandate value in ETH, frequency of mandates
+  5. **Identity Completeness** (10%): has URI, has metadata, wallet verified
+- **Files:** New `services/mandateScoringEngine.ts`, update scoring call in cron route
+- **Success:** Scores computed purely from onchain Mandate data — fully verifiable
+
+### 4.6 — Update database schema
+- **What:** Update tables to store Mandate-specific data, drop/deprecate old columns
+- **New table `mandate_agents`:**
+  - `agent_id` (uint, primary key from Identity contract)
+  - `owner_address`, `wallet_address`, `agent_uri`
+  - `mandates_as_worker`, `mandates_as_creator`, `mandates_completed`, `mandates_disputed`, `mandates_cancelled`
+  - `total_earned_wei`, `feedback_count`, `avg_feedback_value`, `unique_reviewers`
+  - `score`, `tier`, `score_components` (JSONB)
+  - `last_scored_at`, `discovered_at`
+- **Files:** Update `scripts/initDb.ts`
+- **Success:** Clean schema that maps 1:1 to Mandate data
+
+### 4.7 — Update API routes and frontend
+- **What:** Update API responses to use Mandate data model, update frontend to display new fields
+- **Changes:**
+  - `/api/leaderboard` → query `mandate_agents` table
+  - `/api/agent/:username` → query by agentId or wallet, return Mandate data points
+  - Landing page stats → count from `mandate_agents`
+  - Leaderboard → show Mandate-specific columns
+  - Agent Passport → show Mandate score breakdown, escrow stats, review data
+  - Data source badges → "Identity Registry", "Escrow", "Reputation Registry" (instead of MoltCourt/Bankr)
+- **Files:** Multiple API routes and frontend components
+- **Success:** Full end-to-end flow with Mandate data
+
+### 4.8 — Update cron job and cleanup
+- **What:** Rewire the autonomous loop to use new Mandate services. Remove old services.
+- **New loop flow:**
+  1. Discover agents from Identity Registry (incremental scan)
+  2. Collect escrow data for each agent's wallet
+  3. Collect reputation data for each agent's ID
+  4. Score all agents
+  5. Update database
+- **Cleanup:** Remove or archive `services/moltbookCrawler.ts`, `services/moltcourtIntegration.ts`, `services/moltcourtSync.ts`, `services/bankrIntegration.ts`, `services/conversationEngine.ts`
+- **Files:** Update `jobs/autonomousLoop.ts`, `app/api/cron/score/route.ts`
+- **Success:** Complete Mandate-only scoring pipeline running autonomously
+
+### 4.9 (Future) — Write MoltScore back to Mandate
+- Write computed scores as onchain attestations via Reputation Registry
+- Requires wallet + gas — future work
+
+### 4.10 (Future) — Embeddable widget / SDK
 - `<MoltScoreBadge agent="oracle_alpha" />` for other apps
-- JavaScript SDK: `moltscore.getScore("oracle_alpha")`
-
-### 4.4 — Webhook system
-- Notify integrators when an agent's tier changes
-- `POST` to registered callback URL with score update payload
-
-### 4.5 — Score gating
-- Provide a simple SDK for protocols to gate features by MoltScore tier
-- Example: "Only agents with tier A or above can access this DeFi vault"
-
-**Phase 4 is future work** — only relevant once Phases 0–3 are live and there's adoption.
 
 ---
 
@@ -277,18 +441,28 @@ Each task is small, testable, and independent. One at a time.
 - [x] **1.4** API key system (`lib/apiAuth.ts` + `api_keys` table)
 - [x] **1.5** Dynamic landing page stats
 
-### Phase 2 — Agent Passport
-- [ ] **2.1** Agent Passport page (`app/agent/[username]/page.tsx`)
-- [ ] **2.2** Score component visualization
-- [ ] **2.3** Data points display
-- [ ] **2.4** OG image for sharing
-- [ ] **2.5** Link passport from leaderboard
+### Phase 2 — Agent Passport ✅ COMPLETE
+- [x] **2.1** Agent Passport page (`app/agent/[username]/page.tsx`)
+- [x] **2.2** Score component visualization (`components/ScoreBreakdown.tsx`)
+- [x] **2.3** Data points display (`components/DataPoints.tsx`)
+- [x] **2.4** OG image for sharing (`app/agent/[username]/opengraph-image.tsx`)
+- [x] **2.5** Link passport from leaderboard
 
-### Phase 3 — API Documentation
-- [ ] **3.1** API docs page (`app/docs/page.tsx`)
-- [ ] **3.2** API key request flow
+### Phase 3 — API Documentation ✅ COMPLETE
+- [x] **3.1** API docs page (`app/docs/page.tsx`)
+- [x] **3.2** API key request flow (built into docs page)
 
-**Total: 17 tasks across 4 phases.**
+### Phase 4 — Mandate Protocol Refactor
+- [ ] **4.1** Create Mandate contract service layer (`services/mandateContracts.ts`)
+- [ ] **4.2** Build Identity-based agent discovery (`services/mandateDiscovery.ts`)
+- [ ] **4.3** Build Escrow-based metrics collection (`services/mandateEscrow.ts`)
+- [ ] **4.4** Build Reputation-based review ingestion (`services/mandateReputation.ts`)
+- [ ] **4.5** Rewrite scoring engine for Mandate data (`services/mandateScoringEngine.ts`)
+- [ ] **4.6** Update database schema (new `mandate_agents` table)
+- [ ] **4.7** Update API routes and frontend
+- [ ] **4.8** Update cron job and cleanup old services
+
+**Total: 25 tasks across 4 phases (17 complete + 8 new).**
 
 ---
 
@@ -308,8 +482,17 @@ Each task is small, testable, and independent. One at a time.
 ### Next Up
 - [x] **Phase 0:** Production infrastructure ($0 deployment) ✅
 - [x] **Phase 1:** Reputation API ✅
-- [ ] **Phase 2:** Agent Passport
-- [ ] **Phase 3:** API Documentation
+- [x] **Phase 2:** Agent Passport ✅
+- [x] **Phase 3:** API Documentation ✅
+- [ ] **Phase 4:** Mandate Protocol Refactor (Mandate-Only Architecture)
+  - [x] 4.1 Contract service layer ✅
+  - [ ] 4.2 Identity discovery
+  - [ ] 4.3 Escrow metrics
+  - [ ] 4.4 Reputation ingestion
+  - [ ] 4.5 New scoring engine
+  - [ ] 4.6 Database schema
+  - [ ] 4.7 API + frontend updates
+  - [ ] 4.8 Cron job rewire + cleanup
 
 ## Executor's Feedback or Assistance Requests
 
@@ -321,7 +504,45 @@ Each task is small, testable, and independent. One at a time.
   - **1.4** `lib/apiAuth.ts` — API key generation (SHA-256 hashed, `ms_` prefixed), validation with daily rate limiting. `app/api/keys/route.ts` — admin-only key generation (protected by `CRON_SECRET`). `api_keys` table added to `scripts/initDb.ts`.
   - **1.5** `app/page.tsx` — landing page now fetches live agent count and tier count from the database at render time. Stats display dynamically.
   - **Build:** Clean (`next build` passes, TypeScript passes, no new lint errors).
-- Ready for Phase 2 (Agent Passport) execution upon user approval.
+- **Phase 2 COMPLETE.** All 5 tasks executed and verified:
+  - **2.1** `app/agent/[username]/page.tsx` — Full agent passport page. Server component that queries DB directly (enhanced → basic → discovered fallback). Shows header card with avatar, wallet, rank, data source badges; score ring with animated SVG; quick stats row; score breakdown section; verified data points section; "Verified by MoltScore" footer with metadata; API endpoint hint.
+  - **2.2** `components/ScoreBreakdown.tsx` — Client component with animated progress bars (staggered entrance), signal strength badges (strong/medium/weak), and icons for each of the 5 reputation components.
+  - **2.3** `components/DataPoints.tsx` — Groups data points by category (performance, governance, social, financial) with colored category badges and source attribution (Base Chain, MoltCourt, Bankr, Computed).
+  - **2.4** `app/agent/[username]/opengraph-image.tsx` — Dynamic OG image using `next/og`. Dark gradient background, agent name, wallet, score circle with tier-colored border, data source badges. Generates shareable card for Twitter/Farcaster.
+  - **2.5** Leaderboard linking: Top-3 cards (both standard and enhanced views) and table rows now link to `/agent/:username`. Agent names highlight on hover.
+  - **Build:** Clean (`next build` passes, TypeScript passes).
+- **Phase 3 COMPLETE.** Both tasks executed and verified:
+  - **3.1** `app/docs/page.tsx` — Full interactive API documentation page with:
+    - Sticky sidebar navigation with section highlighting
+    - Overview with base URL, tier reference table, score component cards
+    - Authentication section (public vs API key)
+    - Rate limits table (public/read/write tiers)
+    - Error codes reference
+    - 4 endpoint docs (Leaderboard, Agent Lookup, Registration, Status) each with method badge, auth level, parameter tables, curl example with copy button, response example with copy button
+    - API key request form (generates key inline via `/api/keys`)
+    - Consistent design language (clipped corners, color scheme, typography)
+  - **3.2** API key request flow built directly into the docs page — name input, generate button, one-time key display with copy button, error handling
+  - Added "API Docs" navigation link to: landing page header, leaderboard header, agent passport header
+  - **Build:** Clean (`next build` passes, TypeScript passes, lint clean).
+
+- **Phase 4 Task 4.1 COMPLETE.** Contract service layer built and tested:
+  - `services/mandateContracts.ts` — ethers.js contract instances with official ABIs for Identity and Reputation (imported from `abis/` JSON files), hand-crafted ABI for Escrow (unverified contract, selectors confirmed via on-chain probing)
+  - **Key findings from probing:**
+    - Escrow uses `escrows(bytes32)` mapping (not `mandates(uint256)`). Mandate IDs are bytes32 hashes, not sequential.
+    - `escrows(bytes32)` returns struct: (creator, worker, resolver, amount, createdAt, submittedAt, disputeDeposit, status)
+    - Escrow status enum: Pending(0), Quoted(1), Submitted(2), Disputed(3), Completed(4), Cancelled(5), Refunded(6), Rejected(7)
+    - platformFee=1500bps (15%), cancelFee=1000bps (10%)
+    - Agent #1 has 3 reviewers and 9 feedback entries (summaryValue=86)
+  - Includes retry logic for public RPC rate limiting, frozen-array fix for ethers v6 Result objects
+  - Test script: `scripts/testMandateContracts.ts` — 9/9 tests pass (escrow reads succeed when not rate-limited)
+  - Build: Clean (`next build` passes)
+
+**All phases (0–3) are now COMPLETE.** The MoltScore reputation layer is fully built:
+- Phase 0: $0 production infrastructure (Vercel + Neon + GitHub Actions)
+- Phase 1: Reputation API (unified leaderboard, agent lookup, self-registration, API keys)
+- Phase 2: Agent Passport (profile pages, score visualization, OG images, leaderboard linking)
+- Phase 3: API Documentation (interactive docs, key generation)
+- Phase 4 (onchain attestations, NFT badges, SDK, webhooks) is future work once there's adoption.
 
 ## Lessons
 
@@ -334,3 +555,7 @@ Each task is small, testable, and independent. One at a time.
 - Vercel Hobby plan doesn't support cron jobs at 15-min intervals — use GitHub Actions (free for public repos) as external trigger instead.
 - Neon free tier (0.5 GB) is more than enough for thousands of agents.
 - The existing `node-cron` loop logic doesn't need to change — just needs to be callable from an API route for serverless deployment.
+- Escrow contract (MandateEscrowV5) mandate IDs are bytes32 hashes, NOT sequential uint256. The mapping getter is `escrows(bytes32)`.
+- Public Base RPC (`mainnet.base.org`) aggressively rate-limits. Use retry logic with exponential backoff. Consider upgrading to a paid RPC (Alchemy/Infura) for production.
+- ethers v6 returns frozen `Result` arrays from contract calls. Spread them (`[...result]`) before passing to another contract call to avoid "Cannot assign to read only property" errors.
+- For unverified contracts, proxy ABIs are useless (only have constructor/fallback). Need the implementation ABI. If not available, probe with raw function selectors.
