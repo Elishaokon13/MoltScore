@@ -7,7 +7,6 @@ import { parseAgentUri } from "@/lib/agentMetadata";
 export const dynamic = "force-dynamic";
 
 const IDENTITY_REGISTRY = "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432";
-const MOLTLAUNCH_API = "https://api.moltlaunch.com/api/agents";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -23,11 +22,6 @@ interface Gig {
   active: boolean;
 }
 
-interface BurnData {
-  totalBurnedETH: number;
-  totalBurnedUSD: number;
-  totalBurnedTokens: number;
-}
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -93,45 +87,6 @@ async function getAgentById(id: number) {
   return res.rows[0] || null;
 }
 
-async function fetchGigs(agentId: number): Promise<Gig[]> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(`${MOLTLAUNCH_API}/${agentId}/gigs`, {
-      signal: controller.signal,
-      next: { revalidate: 120 },
-    });
-    clearTimeout(timeout);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.gigs || []) as Gig[];
-  } catch {
-    return [];
-  }
-}
-
-async function fetchBurnData(agentId: number): Promise<BurnData | null> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(`${MOLTLAUNCH_API}/${agentId}`, {
-      signal: controller.signal,
-      next: { revalidate: 120 },
-    });
-    clearTimeout(timeout);
-    if (!res.ok) return null;
-    const data = await res.json();
-    const agent = data.agent;
-    if (!agent) return null;
-    return {
-      totalBurnedETH: agent.totalBurnedETH || 0,
-      totalBurnedUSD: agent.totalBurnedUSD || 0,
-      totalBurnedTokens: agent.totalBurnedTokens || 0,
-    };
-  } catch {
-    return null;
-  }
-}
 
 /* ------------------------------------------------------------------ */
 /*  Sub-components                                                     */
@@ -335,13 +290,17 @@ export default async function AgentProfilePage({
     notFound();
   }
 
-  const [row, gigs, burnData] = await Promise.all([
-    getAgentById(agentId),
-    fetchGigs(agentId),
-    fetchBurnData(agentId),
-  ]);
+  const row = await getAgentById(agentId);
 
   if (!row) notFound();
+
+  // Gigs and burn data are cached in the DB by the sync script
+  const gigs: Gig[] = row.gigs_json || [];
+  const burnData = {
+    totalBurnedETH: parseFloat(row.total_burned_eth) || 0,
+    totalBurnedUSD: parseFloat(row.total_burned_usd) || 0,
+    totalBurnedTokens: parseFloat(row.total_burned_tokens) || 0,
+  };
 
   /* ---------- Resolve metadata ---------- */
   let name = row.name as string | null;
@@ -376,7 +335,7 @@ export default async function AgentProfilePage({
   const walletAddress = row.wallet_address as string | null;
   const flaunchUrl = row.flaunch_url as string | null;
 
-  const burnedTokens = burnData?.totalBurnedTokens || 0;
+  const burnedTokens = burnData.totalBurnedTokens || 0;
 
   const activeGigs = gigs.filter((g) => g.active);
 

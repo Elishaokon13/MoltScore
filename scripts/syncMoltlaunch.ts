@@ -8,6 +8,17 @@ import "dotenv/config";
 import { pool } from "../lib/db";
 
 const API_BASE = "https://api.moltlaunch.com/api/agents";
+const DETAIL_DELAY_MS = 200; // small delay between per-agent API calls to avoid rate limits
+
+interface Gig {
+  id: string;
+  title: string;
+  description: string;
+  priceWei: string;
+  deliveryTime: string;
+  category: string;
+  active: boolean;
+}
 
 interface MoltAgent {
   id: string;
@@ -55,11 +66,59 @@ async function fetchPage(page: number): Promise<ApiResponse> {
   return (await res.json()) as ApiResponse;
 }
 
-async function upsertAgent(agent: MoltAgent) {
+async function fetchGigs(agentId: number): Promise<Gig[]> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`${API_BASE}/${agentId}/gigs`, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.gigs || []) as Gig[];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchBurnData(agentId: number): Promise<{
+  totalBurnedETH: number;
+  totalBurnedUSD: number;
+  totalBurnedTokens: number;
+} | null> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`${API_BASE}/${agentId}`, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const a = data.agent;
+    if (!a) return null;
+    return {
+      totalBurnedETH: a.totalBurnedETH || 0,
+      totalBurnedUSD: a.totalBurnedUSD || 0,
+      totalBurnedTokens: a.totalBurnedTokens || 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function upsertAgent(agent: MoltAgent, gigs: Gig[], burnData: { totalBurnedETH: number; totalBurnedUSD: number; totalBurnedTokens: number } | null) {
   const agentId = parseInt(agent.agentIdBigInt, 10);
   const lastActiveAt = agent.lastActiveAt
     ? new Date(agent.lastActiveAt).toISOString()
     : null;
+
+  const gigsJson = gigs.length > 0 ? JSON.stringify(gigs) : null;
 
   await pool.query(
     `INSERT INTO mandate_agents (
@@ -68,11 +127,13 @@ async function upsertAgent(agent: MoltAgent) {
       market_cap_usd, volume_24h_usd, price_change_24h, liquidity_usd, holders,
       flaunch_token, flaunch_url, twitter, x_verified, has_profile,
       endpoint, price_wei, gig_count, completed_tasks, active_tasks,
-      last_active_at, rep_summary_value, rep_count
+      last_active_at, rep_summary_value, rep_count,
+      gigs_json, total_burned_eth, total_burned_usd, total_burned_tokens
     ) VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8, $9,
       $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
-      $20, $21, $22, $23, $24, $25, $26, $27
+      $20, $21, $22, $23, $24, $25, $26, $27,
+      $28, $29, $30, $31
     )
     ON CONFLICT (agent_id) DO UPDATE SET
       name = COALESCE(EXCLUDED.name, mandate_agents.name),
@@ -98,6 +159,10 @@ async function upsertAgent(agent: MoltAgent) {
       last_active_at = EXCLUDED.last_active_at,
       rep_summary_value = EXCLUDED.rep_summary_value,
       rep_count = EXCLUDED.rep_count,
+      gigs_json = COALESCE(EXCLUDED.gigs_json, mandate_agents.gigs_json),
+      total_burned_eth = EXCLUDED.total_burned_eth,
+      total_burned_usd = EXCLUDED.total_burned_usd,
+      total_burned_tokens = EXCLUDED.total_burned_tokens,
       wallet_address = COALESCE(EXCLUDED.wallet_address, mandate_agents.wallet_address),
       owner_address = COALESCE(EXCLUDED.owner_address, mandate_agents.owner_address)
     `,
@@ -129,6 +194,10 @@ async function upsertAgent(agent: MoltAgent) {
       lastActiveAt,
       agent.reputation?.summaryValue || 0,
       agent.reputation?.count || 0,
+      gigsJson,
+      burnData?.totalBurnedETH || 0,
+      burnData?.totalBurnedUSD || 0,
+      burnData?.totalBurnedTokens || 0,
     ]
   );
 }
@@ -147,8 +216,19 @@ async function main() {
 
     for (const agent of data.agents) {
       try {
-        await upsertAgent(agent);
+        const agentId = parseInt(agent.agentIdBigInt, 10);
+
+        // Fetch gigs and burn data per agent (cached in DB, avoids user-facing API calls)
+        const [gigs, burnData] = await Promise.all([
+          fetchGigs(agentId),
+          fetchBurnData(agentId),
+        ]);
+
+        await upsertAgent(agent, gigs, burnData);
         totalSynced++;
+
+        // Small delay to avoid rate limiting the Moltlaunch API
+        await sleep(DETAIL_DELAY_MS);
       } catch (e) {
         console.error(`[sync-moltlaunch] Error upserting agent ${agent.agentIdBigInt}:`, (e as Error).message);
       }
