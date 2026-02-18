@@ -17,10 +17,29 @@ import {
   type MandateAgent,
 } from "./mandateContracts";
 import { pool } from "@/lib/db";
-import {
-  getLastProcessedBlock,
-  setLastProcessedBlock,
-} from "@/lib/cache";
+
+/** Read the last processed block from scan_state table. */
+async function getLastProcessedBlock(key: string): Promise<number | null> {
+  try {
+    const result = await pool.query(
+      "SELECT last_block FROM scan_state WHERE scan_key = $1",
+      [key]
+    );
+    return result.rows.length > 0 ? (result.rows[0].last_block as number) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Write the last processed block to scan_state table. */
+async function setLastProcessedBlock(key: string, block: number): Promise<void> {
+  await pool.query(
+    `INSERT INTO scan_state (scan_key, last_block, updated_at)
+     VALUES ($1, $2, NOW())
+     ON CONFLICT (scan_key) DO UPDATE SET last_block = $2, updated_at = NOW()`,
+    [key, block]
+  );
+}
 
 const LOG = "[MandateDiscovery]";
 

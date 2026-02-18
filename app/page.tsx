@@ -198,10 +198,10 @@ export default async function LandingPage() {
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-4 w-4 transition-transform group-hover:translate-y-0.5"
+                className="h-4 w-4 transition-transform group-hover:scale-110"
               >
                 <path d="M12 5v14" />
-                <path d="m19 12-7 7-7-7" />
+                <path d="M5 12h14" />
               </svg>
               <div className="absolute inset-0 bg-white/5 opacity-0 transition-opacity group-hover:opacity-100" />
             </Link>

@@ -136,8 +136,8 @@ const endpoints: Endpoint[] = [
       "stats": { ... },
       "metadata": {
         "hasOnchainData": true,
-        "hasDebateData": true,
-        "hasBankrData": true,
+        "hasReputationData": true,
+        "hasEscrowData": true,
         "dataCompleteness": 1.0,
         "lastUpdated": "2026-02-16T12:00:00.000Z"
       }
@@ -398,10 +398,10 @@ export default function DocsPage() {
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {[
                   { name: "Task Performance", max: 200, source: "Base Chain" },
-                  { name: "Financial Reliability", max: 300, source: "Base Chain + Bankr" },
-                  { name: "Dispute Record", max: 150, source: "Base Chain" },
-                  { name: "Ecosystem Participation", max: 200, source: "Moltbook + MoltCourt" },
-                  { name: "Intellectual Reputation", max: 150, source: "MoltCourt" },
+                  { name: "Financial Reliability", max: 300, source: "Mandate Escrow" },
+                  { name: "Dispute Record", max: 150, source: "Mandate Escrow" },
+                  { name: "Ecosystem Participation", max: 200, source: "Identity Registry" },
+                  { name: "Peer Reputation", max: 150, source: "Reputation Registry" },
                 ].map((c) => (
                   <div key={c.name} className="rounded-lg border border-border p-3">
                     <div className="flex items-center justify-between">

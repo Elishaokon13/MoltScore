@@ -6,72 +6,47 @@ export const alt = "MoltScore Agent Passport";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-async function getAgentData(username: string) {
-  const normalizedUsername = username.toLowerCase().trim();
+async function getAgentData(identifier: string) {
+  const isNumeric = /^\d+$/.test(identifier);
+  const result = isNumeric
+    ? await pool.query(
+        `SELECT agent_id, name, owner_address, rep_value, rep_count, completed_tasks, market_cap, x_verified
+         FROM mandate_agents WHERE agent_id = $1 LIMIT 1`,
+        [parseInt(identifier, 10)]
+      )
+    : await pool.query(
+        `SELECT agent_id, name, owner_address, rep_value, rep_count, completed_tasks, market_cap, x_verified
+         FROM mandate_agents WHERE LOWER(name) = $1 LIMIT 1`,
+        [identifier.toLowerCase().trim()]
+      );
 
-  // Try enhanced first
-  try {
-    const result = await pool.query(
-      `SELECT username, wallet, overall_score, tier, data_completeness,
-              has_onchain_data, has_debate_data, has_bankr_data
-       FROM scored_agents_enhanced
-       WHERE LOWER(username) = $1 LIMIT 1`,
-      [normalizedUsername]
-    );
-    if (result.rows.length > 0) {
-      const r = result.rows[0] as Record<string, unknown>;
-      return {
-        username: r.username as string,
-        wallet: (r.wallet as string) || null,
-        score: r.overall_score as number,
-        tier: r.tier as string,
-        dataCompleteness: (r.data_completeness as number) ?? 0,
-        hasOnchain: r.has_onchain_data as boolean,
-        hasDebate: r.has_debate_data as boolean,
-        hasBankr: r.has_bankr_data as boolean,
-      };
-    }
-  } catch {
-    // table might not exist
-  }
+  if (result.rows.length === 0) return null;
+  const r = result.rows[0];
+  return {
+    name: r.name as string,
+    owner: (r.owner_address as string) || null,
+    repValue: (r.rep_value as number) ?? 0,
+    repCount: (r.rep_count as number) ?? 0,
+    completedTasks: (r.completed_tasks as number) ?? 0,
+    marketCap: parseFloat(r.market_cap ?? "0"),
+    xVerified: r.x_verified ?? false,
+  };
+}
 
-  // Try basic
-  const basicResult = await pool.query(
-    `SELECT username, wallet, score, tier FROM scored_agents WHERE LOWER(username) = $1 LIMIT 1`,
-    [normalizedUsername]
-  );
-  if (basicResult.rows.length > 0) {
-    const r = basicResult.rows[0] as Record<string, unknown>;
-    return {
-      username: r.username as string,
-      wallet: (r.wallet as string) || null,
-      score: (r.score as number) ?? 0,
-      tier: (r.tier as string) ?? "",
-      dataCompleteness: 0.4,
-      hasOnchain: true,
-      hasDebate: false,
-      hasBankr: false,
-    };
-  }
-  return null;
+function getTier(rep: number): string {
+  if (rep > 80) return "Excellent";
+  if (rep > 60) return "Good";
+  if (rep > 0) return "Active";
+  return "New";
 }
 
 export default async function OGImage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
   const agent = await getAgentData(username);
 
-  const tierColors: Record<string, string> = {
-    AAA: "#f97316",
-    AA: "#f97316",
-    A: "#facc15",
-    BBB: "#facc15",
-    BB: "#7c3aed",
-    "Risk Watch": "#ef4444",
-  };
-
-  const score = agent?.score ?? 0;
-  const tier = agent?.tier ?? "—";
-  const color = tierColors[tier] ?? "#7c3aed";
+  const rep = agent?.repValue ?? 0;
+  const tier = getTier(rep);
+  const color = rep > 80 ? "#f97316" : rep > 60 ? "#facc15" : rep > 0 ? "#7c3aed" : "#6b7280";
 
   return new ImageResponse(
     (
@@ -111,16 +86,16 @@ export default async function OGImage({ params }: { params: Promise<{ username: 
               </span>
             </div>
             <h1 style={{ color: "#ffffff", fontSize: "64px", fontWeight: 800, margin: 0, lineHeight: 1.1 }}>
-              {agent?.username ?? username}
+              {agent?.name ?? username}
             </h1>
-            {agent?.wallet && (
+            {agent?.owner && (
               <span style={{ color: "#6b7280", fontSize: "18px", fontFamily: "monospace" }}>
-                {agent.wallet.slice(0, 6)}...{agent.wallet.slice(-4)}
+                {agent.owner.slice(0, 6)}...{agent.owner.slice(-4)}
               </span>
             )}
           </div>
 
-          {/* Score circle */}
+          {/* Reputation circle */}
           <div
             style={{
               display: "flex",
@@ -135,7 +110,7 @@ export default async function OGImage({ params }: { params: Promise<{ username: 
             }}
           >
             <span style={{ color: "#ffffff", fontSize: "56px", fontWeight: 800, fontFamily: "monospace" }}>
-              {score}
+              {rep}
             </span>
             <span style={{ color, fontSize: "20px", fontWeight: 700, fontFamily: "monospace" }}>
               {tier}
@@ -147,9 +122,9 @@ export default async function OGImage({ params }: { params: Promise<{ username: 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <div style={{ display: "flex", gap: "16px" }}>
             {[
-              { label: "Onchain", active: agent?.hasOnchain ?? false },
-              { label: "MoltCourt", active: agent?.hasDebate ?? false },
-              { label: "Bankr", active: agent?.hasBankr ?? false },
+              { label: "Identity", active: true },
+              { label: "Reputation", active: (agent?.repCount ?? 0) > 0 },
+              { label: "Escrow", active: (agent?.completedTasks ?? 0) > 0 },
             ].map((source) => (
               <div
                 key={source.label}

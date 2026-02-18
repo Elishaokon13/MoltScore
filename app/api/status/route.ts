@@ -1,23 +1,24 @@
 /**
- * GET /api/status — monitoring stats from cache/DB only.
- * No heavy computation; read from Postgres and in-memory state.
+ * GET /api/status — System health and agent counts.
  */
 
-import { getCache, getReplyCountInLast24h } from "@/lib/cache";
+import { pool } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const [cache, repliesLast24h] = await Promise.all([getCache(), getReplyCountInLast24h()]);
+    const [totalResult, scoredResult] = await Promise.all([
+      pool.query("SELECT COUNT(*) as cnt FROM mandate_agents"),
+      pool.query("SELECT COUNT(*) as cnt FROM mandate_agents WHERE rep_value > 0"),
+    ]);
 
     return NextResponse.json({
-      lastUpdated: cache.lastUpdated,
-      discoveredCount: cache.discovered.length,
-      scoredCount: cache.scored.length,
-      lastProcessedBlock: cache.lastProcessedBlockByContract,
-      repliesLast24h,
+      success: true,
+      totalAgents: parseInt(totalResult.rows[0]?.cnt ?? "0", 10),
+      scoredAgents: parseInt(scoredResult.rows[0]?.cnt ?? "0", 10),
+      uptime: process.uptime(),
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";

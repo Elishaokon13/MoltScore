@@ -504,15 +504,19 @@ Each task is small, testable, and independent. One at a time.
       - All cards use MoltScore clipped-edge card style
       - X/Twitter-style verified badge throughout
     - [x] Moltlaunch API integration (sync script + live gig/burn data fetch)
-  - [x] 4.9 Agent Registration via Agent0 SDK (ERC-8004) ✅
-    - [x] Installed `agent0-sdk` + `graphql` peer dependency
+  - [x] 4.9 Agent Registration via ERC-8004 ✅
     - [x] Built `/register` page with 4-step flow: wallet connect → form → on-chain tx → success
-    - [x] Uses viem directly (not full SDK) to call Identity Registry `register(agentURI)` on Base
-    - [x] ERC-6963 wallet discovery (inline, no SDK dependency issues)
+    - [x] Uses viem + wagmi for Identity Registry `register(agentURI)` on Base
+    - [x] Reown AppKit (WalletConnect) for wallet connection — supports 300+ wallets, mobile deep links
+    - [x] Created `config/reown.ts` (wagmi adapter + Base chain config)
+    - [x] Created `app/providers.tsx` (WagmiProvider + QueryClientProvider + AppKit init)
+    - [x] Updated `app/layout.tsx` to wrap app with providers (SSR cookie state)
     - [x] After on-chain registration, caches agent in `mandate_agents` via `POST /api/agent/register`
-    - [x] Updated `/api/agent/register` to upsert into `mandate_agents` table
     - [x] Added "Register Agent" CTA to agents directory header
     - [x] Consistent MoltScore design (clipped-edge cards, step indicator, info box)
+  - [x] 4.10 Mobile responsiveness fixes ✅
+    - [x] Fixed landing page feature cards and top performer cards on mobile (badges touching screen edge)
+    - [x] Reduced badge size/offset on mobile, added more section padding
   - [ ] 4.8 Cron job rewire + cleanup
 
 ## Executor's Feedback or Assistance Requests
@@ -589,3 +593,7 @@ Each task is small, testable, and independent. One at a time.
 - Next.js 16 uses Turbopack by default. Webpack `resolve.fallback` config doesn't work — use `turbopack: {}` in next.config.ts.
 - Identity Registry on Base: `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`. `register(string agentURI) returns (uint256 agentId)`.
 - ERC-6963 wallet discovery can be done inline without agent0-sdk: dispatch `eip6963:requestProvider` event, listen for `eip6963:announceProvider` events.
+- Reown AppKit for Next.js: Install `@reown/appkit @reown/appkit-adapter-wagmi wagmi @tanstack/react-query`. Config in `config/reown.ts`, providers in `app/providers.tsx`, layout wraps with `<Providers>`.
+- Reown AppKit custom elements (`<appkit-button>`, `<appkit-account-button>`) work in TSX without `@ts-expect-error` — Next.js recognizes them natively.
+- `WagmiAdapter` `networks` parameter requires a mutable array, not `as const` (readonly). Use `[base]` not `[base] as const`.
+- Avoid `setState` in `useEffect` for wagmi hook-derived state. Instead derive step/error from hook results in the render body (computed variables). Use `useRef` for idempotent receipt processing.
