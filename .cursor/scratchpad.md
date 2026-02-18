@@ -610,3 +610,5 @@ Each task is small, testable, and independent. One at a time.
 - Reown AppKit custom elements (`<appkit-button>`, `<appkit-account-button>`) work in TSX without `@ts-expect-error` — Next.js recognizes them natively.
 - `WagmiAdapter` `networks` parameter requires a mutable array, not `as const` (readonly). Use `[base]` not `[base] as const`.
 - Avoid `setState` in `useEffect` for wagmi hook-derived state. Instead derive step/error from hook results in the render body (computed variables). Use `useRef` for idempotent receipt processing.
+- ethers v6: `Wallet.fromPhrase()` returns `HDNodeWallet`, not `Wallet`. These types are incompatible due to `#private` member differences. Use `HDNodeWallet.fromPhrase()` directly and type the signer as `ethers.Signer & { address: string }`.
+- EigenCompute `ecloud compute app deploy`: When building from git source with a monorepo, set **build context path** to the subdirectory (e.g. `eigencompute`) and **Dockerfile path** to `Dockerfile` (relative to that context).
