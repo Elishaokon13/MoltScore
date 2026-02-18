@@ -14,6 +14,11 @@ import express from "express";
 import { ethers } from "ethers";
 import { computeScore, fetchScoreInput, type ScoreOutput } from "./scoring";
 
+// BigInt → string so JSON.stringify works with on-chain values
+(BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function () {
+  return this.toString();
+};
+
 const app = express();
 const PORT = parseInt(process.env.APP_PORT || "3001", 10);
 const RPC_URL = process.env.BASE_RPC_URL || "https://mainnet.base.org";
