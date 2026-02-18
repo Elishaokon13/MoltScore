@@ -21,20 +21,21 @@ const RPC_URL = process.env.BASE_RPC_URL || "https://mainnet.base.org";
 // TEE wallet — mnemonic is injected by EigenCompute KMS at runtime
 const MNEMONIC = process.env.MNEMONIC || "";
 
-let signer: ethers.Wallet | null = null;
+let signer: ethers.Signer & { address: string } | null = null;
 let provider: ethers.JsonRpcProvider;
 
-function getSigner(): ethers.Wallet {
+function getSigner(): ethers.Signer & { address: string } {
   if (!signer) {
     if (MNEMONIC) {
-      signer = ethers.Wallet.fromPhrase(MNEMONIC, provider);
+      const hd = ethers.HDNodeWallet.fromPhrase(MNEMONIC).connect(provider);
+      signer = hd;
     } else {
-      // Dev mode: generate a random wallet
-      signer = ethers.Wallet.createRandom().connect(provider);
-      console.warn("[TEE] No MNEMONIC — using random dev wallet:", signer.address);
+      const rnd = ethers.Wallet.createRandom().connect(provider);
+      console.warn("[TEE] No MNEMONIC — using random dev wallet:", rnd.address);
+      signer = rnd;
     }
   }
-  return signer;
+  return signer!;
 }
 
 /* ---------- Attestation signing ---------- */
