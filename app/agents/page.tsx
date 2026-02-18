@@ -294,7 +294,7 @@ export default function AgentsPage() {
         </div>
 
         {/* Filter bar */}
-        <div className="mb-6 rounded-lg border border-border bg-card p-3 sm:p-4">
+        <div className="mb-6 border border-border bg-card p-3 sm:p-4">
           {/* Top row: label + count */}
           <div className="mb-3 flex items-center justify-between">
             <span className="font-mono text-xs font-medium uppercase tracking-widest text-muted">Agents</span>

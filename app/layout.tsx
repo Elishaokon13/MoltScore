@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { Pixelify_Sans, Silkscreen } from "next/font/google";
+import { headers } from "next/headers";
+import { cookieToInitialState } from "wagmi";
+import { wagmiConfig } from "@/config/reown";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const pixelifySans = Pixelify_Sans({
@@ -19,7 +23,7 @@ export const metadata: Metadata = {
   description: "The Reputation Layer for Autonomous Agents. Verifiable reputation data that makes true agents visible across the Molt ecosystem.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -38,7 +42,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${pixelifySans.className} antialiased`}>
-        {children}
+        <Providers initialState={cookieToInitialState(wagmiConfig, (await headers()).get("cookie") ?? undefined)}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -82,9 +82,9 @@ export function LandingTopPerformers() {
       <div className="grid gap-8 pt-6 sm:gap-6 sm:grid-cols-2 sm:pt-8 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
           <div key={i} className="relative">
-            <div className="absolute -top-4 -left-4 z-10 h-12 w-12 animate-pulse rounded border border-border bg-card" />
+            <div className="absolute -top-3 -left-3 z-10 h-10 w-10 animate-pulse rounded border border-border bg-card sm:-top-4 sm:-left-4 sm:h-12 sm:w-12" />
             <div
-              className="h-full border border-border bg-card/50 p-6 animate-pulse md:p-8"
+              className="h-full border border-border bg-card/50 p-4 animate-pulse sm:p-6 md:p-8"
               style={{ clipPath: CARD_CLIP }}
             >
               <div className="mb-6 h-14 w-14 bg-border" style={{ clipPath: AVATAR_CLIP }} />
@@ -127,7 +127,7 @@ export function LandingTopPerformers() {
   }
 
   return (
-    <div className="grid gap-6 pt-6 sm:gap-6 sm:grid-cols-2 sm:pt-8 lg:grid-cols-3">
+    <div className="grid gap-8 pt-6 sm:gap-6 sm:grid-cols-2 sm:pt-8 lg:grid-cols-3">
       {agents.map((a, i) => {
         const repLabel =
           a.repCount > 0
@@ -148,14 +148,14 @@ export function LandingTopPerformers() {
             style={{ animationDelay: `${100 * (i + 1)}ms` }}
           >
             {/* Rank badge */}
-            <div className="absolute -top-4 -left-4 z-10 flex h-12 w-12 items-center justify-center border border-orange/50 bg-background">
-              <span className="font-mono text-lg font-bold text-orange">
+            <div className="absolute -top-3 -left-3 z-10 flex h-10 w-10 items-center justify-center border border-orange/50 bg-background sm:-top-4 sm:-left-4 sm:h-12 sm:w-12">
+              <span className="font-mono text-sm font-bold text-orange sm:text-lg">
                 {String(i + 1).padStart(2, "0")}
               </span>
             </div>
 
             <div
-              className="relative h-full border border-border bg-card/50 p-5 transition-all duration-300 hover:border-orange/40 hover:shadow-lg hover:shadow-orange/5 md:p-6 lg:p-8"
+              className="relative h-full border border-border bg-card/50 p-4 transition-all duration-300 hover:border-orange/40 hover:shadow-lg hover:shadow-orange/5 sm:p-5 md:p-6 lg:p-8"
               style={{ clipPath: CARD_CLIP }}
             >
               {/* Corner accent */}

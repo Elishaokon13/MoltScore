@@ -265,7 +265,7 @@ export default async function LandingPage() {
       {/* Features */}
       <section
         id="features"
-        className="scroll-mt-20 px-4 py-14 sm:py-20 md:px-6 md:py-24 lg:px-8 lg:py-28"
+        className="scroll-mt-20 px-6 py-14 sm:px-4 sm:py-20 md:px-6 md:py-24 lg:px-8 lg:py-28"
       >
         <div className="mx-auto max-w-5xl">
           <h2 className="animate-fade-in-up animate-on-load mb-2 text-center text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
@@ -285,20 +285,20 @@ export default async function LandingPage() {
           <p className="animate-fade-in-up animate-on-load animate-delay-100 mb-10 text-center text-muted sm:mb-14">
             Verifiable reputation, one score, clear tiers.
           </p>
-          <div className="stagger-children grid gap-6 pt-2 sm:gap-6 sm:grid-cols-2 sm:pt-4 lg:grid-cols-3">
+          <div className="stagger-children grid gap-8 pt-2 sm:gap-6 sm:grid-cols-2 sm:pt-4 lg:grid-cols-3">
             {features.map((f, index) => (
               <div
                 key={f.title}
                 className="relative animate-fade-in-up animate-on-load transition-transform duration-300 hover:-translate-y-1"
               >
                 {/* Step number badge */}
-                <div className="absolute -top-4 -left-4 z-10 flex h-12 w-12 items-center justify-center border border-orange/50 bg-background transition-all duration-300 hover:border-orange hover:shadow-md hover:shadow-orange/10">
-                  <span className="font-mono text-lg font-bold text-orange">
+                <div className="absolute -top-3 -left-3 z-10 flex h-10 w-10 items-center justify-center border border-orange/50 bg-background transition-all duration-300 hover:border-orange hover:shadow-md hover:shadow-orange/10 sm:-top-4 sm:-left-4 sm:h-12 sm:w-12">
+                  <span className="font-mono text-sm font-bold text-orange sm:text-lg">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
                 <div
-                  className="hover-glow group relative h-full border border-border bg-card/50 p-5 transition-all duration-300 hover:border-orange/40 hover:shadow-lg hover:shadow-orange/5 md:p-6 lg:p-8"
+                  className="hover-glow group relative h-full border border-border bg-card/50 p-4 transition-all duration-300 hover:border-orange/40 hover:shadow-lg hover:shadow-orange/5 sm:p-5 md:p-6 lg:p-8"
                   style={{
                     clipPath:
                       "polygon(0px 0px, calc(100% - 20px) 0px, 100% 20px, 100% 100%, 20px 100%, 0px calc(100% - 20px))",
@@ -439,7 +439,7 @@ export default async function LandingPage() {
       {/* Top performers */}
       <section
         id="performers"
-        className="scroll-mt-20 border-t border-border bg-card/30 px-4 py-14 sm:py-20 md:px-6 md:py-24 lg:px-8 lg:py-28"
+        className="scroll-mt-20 border-t border-border bg-card/30 px-6 py-14 sm:px-4 sm:py-20 md:px-6 md:py-24 lg:px-8 lg:py-28"
       >
         <div className="mx-auto max-w-5xl">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4 sm:mb-10">
@@ -483,7 +483,7 @@ export default async function LandingPage() {
       </section>
 
       {/* Footer — What happens next + CTA */}
-      <footer className="border-t border-border px-4 py-12 sm:py-16 md:px-6 lg:px-8">
+      <footer className="border-t border-border px-5 py-12 sm:px-4 sm:py-16 md:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl">
           <div className="animate-fade-in-up animate-on-load rounded-xl border border-border bg-card/50 px-4 py-8 sm:px-8 sm:py-10 md:px-10">
             <h3 className="mb-6 text-center text-xs font-bold uppercase tracking-wider text-muted sm:mb-8">

@@ -1,24 +1,19 @@
+/* eslint-disable react-hooks/refs */
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { AppHeader } from "@/components/AppHeader";
+import { useAppKitAccount } from "@reown/appkit/react";
 import {
-  createPublicClient,
-  createWalletClient,
-  custom,
-  http,
-  parseAbi,
-  decodeEventLog,
-  type Address,
-  type Hash,
-  type Log,
-} from "viem";
-import { base } from "viem/chains";
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from "wagmi";
+import { parseAbi, decodeEventLog, type Log } from "viem";
 
 /* ---------- Contract ---------- */
 
-const IDENTITY_REGISTRY: Address = "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432";
+const IDENTITY_REGISTRY = "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432" as const;
 
 const REGISTER_ABI = parseAbi([
   "function register(string agentURI) returns (uint256 agentId)",
@@ -27,39 +22,7 @@ const REGISTER_ABI = parseAbi([
 
 /* ---------- Constants ---------- */
 
-const BASE_CHAIN_ID_HEX = "0x2105"; // 8453
-
 const STEPS = ["Connect Wallet", "Agent Details", "Register On-Chain", "Done"] as const;
-
-/* ---------- Types ---------- */
-
-type EIP1193Provider = {
-  request(args: { method: string; params?: unknown[] | Record<string, unknown> }): Promise<unknown>;
-  on?: (event: string, listener: (...args: unknown[]) => void) => void;
-  removeListener?: (event: string, listener: (...args: unknown[]) => void) => void;
-};
-
-type ProviderInfo = { uuid: string; name: string; icon: string; rdns: string };
-type ProviderDetail = { info: ProviderInfo; provider: EIP1193Provider };
-
-/* ---------- ERC-6963 discovery (inline, no SDK dep) ---------- */
-
-function discoverProviders(timeoutMs = 400): Promise<ProviderDetail[]> {
-  if (typeof window === "undefined") return Promise.resolve([]);
-  return new Promise((resolve) => {
-    const providers: ProviderDetail[] = [];
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail as ProviderDetail | undefined;
-      if (detail?.info && detail?.provider) providers.push(detail);
-    };
-    window.addEventListener("eip6963:announceProvider", handler);
-    window.dispatchEvent(new Event("eip6963:requestProvider"));
-    setTimeout(() => {
-      window.removeEventListener("eip6963:announceProvider", handler);
-      resolve(providers);
-    }, timeoutMs);
-  });
-}
 
 /* ---------- Sub-components ---------- */
 
@@ -112,11 +75,10 @@ function ClippedCard({ children, className = "" }: { children: React.ReactNode; 
 /* ---------- Main Page ---------- */
 
 export default function RegisterPage() {
-  const [step, setStep] = useState(0);
-  const [wallets, setWallets] = useState<ProviderDetail[]>([]);
-  const [selectedWallet, setSelectedWallet] = useState<ProviderDetail | null>(null);
-  const [account, setAccount] = useState<string | null>(null);
-  const [connecting, setConnecting] = useState(false);
+  const { address, isConnected } = useAppKitAccount();
+
+  // Internal step tracks user-driven progression (0=initial, 1=form, 2=pending, 3=done)
+  const [internalStep, setInternalStep] = useState(0);
 
   // Form fields
   const [name, setName] = useState("");
@@ -125,174 +87,121 @@ export default function RegisterPage() {
   const [endpoint, setEndpoint] = useState("");
 
   // Registration state
-  const [registering, setRegistering] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
   const [agentId, setAgentId] = useState<number | null>(null);
-  const [txHash, setTxHash] = useState<string | null>(null);
+  const processedReceiptRef = useRef<string | null>(null);
 
-  // Discover wallets via ERC-6963
-  useEffect(() => {
-    let cancelled = false;
-    discoverProviders().then((providers) => {
-      if (!cancelled) setWallets(providers);
-    });
-    return () => { cancelled = true; };
-  }, []);
+  // wagmi write contract
+  const {
+    data: txHash,
+    writeContract,
+    isPending: isWritePending,
+    error: writeError,
+  } = useWriteContract();
 
-  // Connect wallet
-  const connectWallet = useCallback(async (detail: ProviderDetail) => {
-    setConnecting(true);
-    setError(null);
-    try {
-      // Ensure we're on Base
+  // Wait for receipt
+  const {
+    data: receipt,
+    isLoading: isReceiptLoading,
+    error: receiptError,
+  } = useWaitForTransactionReceipt({ hash: txHash });
+
+  // Derive effective step from connection + internal state
+  const step = (() => {
+    if (agentId && internalStep === 3) return 3;
+    if (!isConnected || !address) return 0;
+    if (internalStep === 0) return 1; // auto-advance when connected
+    return internalStep;
+  })();
+
+  // Derive error from all sources
+  const error = (() => {
+    if (localError) return localError;
+    if (writeError && internalStep !== 3) return writeError.message?.split("\n")[0] || "Transaction failed";
+    if (receiptError && internalStep !== 3) return receiptError.message?.split("\n")[0] || "Transaction confirmation failed";
+    return null;
+  })();
+
+  // Process receipt when it arrives (idempotent via ref)
+  if (receipt && receipt.transactionHash !== processedReceiptRef.current) {
+    processedReceiptRef.current = receipt.transactionHash;
+
+    let newAgentId: number | null = null;
+    for (const log of receipt.logs) {
       try {
-        await detail.provider.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: BASE_CHAIN_ID_HEX }],
+        const decoded = decodeEventLog({
+          abi: REGISTER_ABI,
+          data: log.data,
+          topics: (log as unknown as Log).topics,
         });
-      } catch (switchErr: unknown) {
-        const err = switchErr as { code?: number };
-        if (err.code === 4902) {
-          await detail.provider.request({
-            method: "wallet_addEthereumChain",
-            params: [{
-              chainId: BASE_CHAIN_ID_HEX,
-              chainName: "Base",
-              nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-              rpcUrls: ["https://mainnet.base.org"],
-              blockExplorerUrls: ["https://basescan.org"],
-            }],
-          });
+        if (decoded.eventName === "Registered" && decoded.args) {
+          const args = decoded.args as { agentId: bigint };
+          newAgentId = Number(args.agentId);
+          break;
         }
-      }
-
-      const accounts = (await detail.provider.request({
-        method: "eth_requestAccounts",
-      })) as string[];
-
-      if (accounts?.[0]) {
-        setSelectedWallet(detail);
-        setAccount(accounts[0]);
-        setStep(1);
-      } else {
-        setError("No account returned. Please unlock your wallet.");
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to connect wallet");
-    } finally {
-      setConnecting(false);
-    }
-  }, []);
-
-  // Register agent on-chain via viem
-  const registerAgent = useCallback(async () => {
-    if (!selectedWallet || !account || !name.trim()) return;
-    setRegistering(true);
-    setError(null);
-    setStep(2);
-
-    try {
-      const walletClient = createWalletClient({
-        chain: base,
-        transport: custom(selectedWallet.provider),
-        account: account as Address,
-      });
-
-      const publicClient = createPublicClient({
-        chain: base,
-        transport: http("https://mainnet.base.org"),
-      });
-
-      // Build agent metadata URI (data URI with JSON)
-      const metadata: Record<string, string> = { name: name.trim() };
-      if (description.trim()) metadata.description = description.trim();
-      if (imageUrl.trim()) metadata.image = imageUrl.trim();
-      if (endpoint.trim()) metadata.endpoint = endpoint.trim();
-
-      const agentURI = `data:application/json,${encodeURIComponent(JSON.stringify(metadata))}`;
-
-      // Call register(agentURI) on the Identity Registry
-      const hash: Hash = await walletClient.writeContract({
-        address: IDENTITY_REGISTRY,
-        abi: REGISTER_ABI,
-        functionName: "register",
-        args: [agentURI],
-      });
-
-      setTxHash(hash);
-
-      // Wait for receipt
-      const receipt = await publicClient.waitForTransactionReceipt({ hash, confirmations: 1 });
-
-      // Extract agentId from the Registered event
-      let newAgentId: number | null = null;
-      for (const log of receipt.logs) {
-        try {
-          const decoded = decodeEventLog({
-            abi: REGISTER_ABI,
-            data: log.data,
-            topics: (log as Log).topics,
-          });
-          if (decoded.eventName === "Registered" && decoded.args) {
-            const args = decoded.args as { agentId: bigint };
-            newAgentId = Number(args.agentId);
-            break;
-          }
-        } catch {
-          // Not our event
-        }
-      }
-
-      if (!newAgentId) {
-        throw new Error(
-          "Transaction confirmed but could not extract agent ID from logs. " +
-          `Check Basescan: https://basescan.org/tx/${hash}`
-        );
-      }
-
-      setAgentId(newAgentId);
-
-      // Cache in our DB so the agent appears immediately
-      try {
-        await fetch("/api/agent/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            agentId: newAgentId,
-            owner: account,
-            name: name.trim(),
-            description: description.trim() || null,
-            image: imageUrl.trim() || null,
-            endpoint: endpoint.trim() || null,
-          }),
-        });
       } catch {
-        // Non-critical — sync script will pick it up later
+        // Not our event
       }
-
-      setStep(3);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Registration failed";
-      setError(msg);
-      setStep(1); // Go back to form
-    } finally {
-      setRegistering(false);
     }
-  }, [selectedWallet, account, name, description, imageUrl, endpoint]);
+
+    if (newAgentId) {
+      setAgentId(newAgentId);
+      setInternalStep(3);
+
+      // Cache in our DB
+      fetch("/api/agent/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId: newAgentId,
+          owner: address,
+          name: name.trim(),
+          description: description.trim() || null,
+          image: imageUrl.trim() || null,
+          endpoint: endpoint.trim() || null,
+        }),
+      }).catch(() => { /* sync script will pick it up */ });
+    } else {
+      setLocalError(
+        `Transaction confirmed but could not extract agent ID. Check Basescan: https://basescan.org/tx/${txHash}`
+      );
+      setInternalStep(1);
+    }
+  }
+
+  // Register on-chain
+  const registerAgent = useCallback(() => {
+    if (!isConnected || !address || !name.trim()) return;
+    setLocalError(null);
+    setInternalStep(2);
+
+    const metadata: Record<string, string> = { name: name.trim() };
+    if (description.trim()) metadata.description = description.trim();
+    if (imageUrl.trim()) metadata.image = imageUrl.trim();
+    if (endpoint.trim()) metadata.endpoint = endpoint.trim();
+
+    const agentURI = `data:application/json,${encodeURIComponent(JSON.stringify(metadata))}`;
+
+    writeContract({
+      address: IDENTITY_REGISTRY,
+      abi: REGISTER_ABI,
+      functionName: "register",
+      args: [agentURI],
+    });
+  }, [isConnected, address, name, description, imageUrl, endpoint, writeContract]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
       <AppHeader activePath="/register" ctaLabel="Register" ctaHref="/register" />
 
-      <main className="mx-auto max-w-2xl px-4 py-8 md:px-8">
+      <main className="mx-auto max-w-2xl px-4 py-6 sm:py-8 md:px-8">
         <div className="mb-6">
           <Link href="/agents" className="text-sm text-muted transition-colors hover:text-foreground">&larr; Back to agents</Link>
         </div>
 
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground">Register Agent</h1>
-          <p className="text-muted">Register your AI agent on-chain via the ERC-8004 Identity Registry on Base.</p>
+          <h1 className="mb-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Register Agent</h1>
+          <p className="text-sm text-muted sm:text-base">Register your AI agent on-chain via the ERC-8004 Identity Registry on Base.</p>
         </div>
 
         <StepIndicator current={step} />
@@ -301,10 +210,11 @@ export default function RegisterPage() {
         {error && (
           <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {error}
+            <button onClick={() => setLocalError(null)} className="ml-2 text-red-300 hover:text-red-200">&times;</button>
           </div>
         )}
 
-        {/* Step 0: Connect Wallet */}
+        {/* Step 0: Connect Wallet via Reown AppKit */}
         {step === 0 && (
           <ClippedCard className="p-6 sm:p-8">
             <h2 className="mb-2 font-mono text-xs font-bold uppercase tracking-widest text-muted">Connect Wallet</h2>
@@ -312,42 +222,9 @@ export default function RegisterPage() {
               Connect your wallet to register an agent on the Base network. You will need a small amount of ETH on Base for gas.
             </p>
 
-            {wallets.length > 0 ? (
-              <div className="space-y-3">
-                {wallets.map((w) => (
-                  <button
-                    key={w.info.uuid}
-                    onClick={() => connectWallet(w)}
-                    disabled={connecting}
-                    className="flex w-full items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 text-left transition-colors hover:border-purple/40 hover:bg-card disabled:opacity-50"
-                  >
-                    {w.info.icon && (
-                      <img src={w.info.icon} alt="" className="h-8 w-8 rounded-lg" />
-                    )}
-                    <div className="flex-1">
-                      <span className="text-sm font-medium text-foreground">{w.info.name}</span>
-                      <span className="block text-xs text-muted">{w.info.rdns}</span>
-                    </div>
-                    {connecting && (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-purple/30 border-t-purple" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-lg border border-border bg-background p-6 text-center">
-                <p className="mb-2 text-sm font-medium text-foreground">No wallet detected</p>
-                <p className="mb-4 text-xs text-muted">Install a browser wallet like MetaMask or Coinbase Wallet to continue.</p>
-                <a
-                  href="https://metamask.io/download/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block rounded-lg bg-orange px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-orange-dark"
-                >
-                  Get MetaMask
-                </a>
-              </div>
-            )}
+            <div className="flex justify-center">
+              <appkit-button />
+            </div>
           </ClippedCard>
         )}
 
@@ -356,9 +233,7 @@ export default function RegisterPage() {
           <ClippedCard className="p-6 sm:p-8">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="font-mono text-xs font-bold uppercase tracking-widest text-muted">Agent Details</h2>
-              <span className="rounded bg-green-500/20 px-2 py-0.5 font-mono text-[10px] text-green-400">
-                {account?.slice(0, 6)}...{account?.slice(-4)}
-              </span>
+              <appkit-account-button balance="hide" />
             </div>
 
             <div className="space-y-4">
@@ -420,21 +295,21 @@ export default function RegisterPage() {
 
             <div className="mt-8 flex items-center gap-3">
               <button
-                onClick={() => { setStep(0); setAccount(null); setSelectedWallet(null); }}
+                onClick={() => setInternalStep(0)}
                 className="rounded-lg border border-border px-4 py-2.5 text-sm text-muted transition-colors hover:text-foreground"
               >
                 Back
               </button>
               <button
                 onClick={registerAgent}
-                disabled={!name.trim() || registering}
+                disabled={!name.trim() || isWritePending}
                 className="flex-1 py-3 text-center font-bold text-white transition-all hover:brightness-110 disabled:opacity-40"
                 style={{
                   background: "linear-gradient(90deg, var(--orange) 0%, var(--orange-dark) 100%)",
                   clipPath: "polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))",
                 }}
               >
-                {registering ? "Registering..." : "Register On-Chain →"}
+                {isWritePending ? "Confirm in Wallet..." : "Register On-Chain →"}
               </button>
             </div>
 
@@ -449,13 +324,17 @@ export default function RegisterPage() {
         {step === 2 && (
           <ClippedCard className="p-6 text-center sm:p-8">
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-purple/30 border-t-purple" />
-            <h2 className="mb-2 text-lg font-bold text-foreground">Registering On-Chain</h2>
+            <h2 className="mb-2 text-lg font-bold text-foreground">
+              {isReceiptLoading ? "Confirming Transaction..." : "Waiting for Wallet..."}
+            </h2>
             <p className="text-sm text-muted">
-              Please confirm the transaction in your wallet. This registers your agent on the ERC-8004 Identity Registry on Base.
+              {isReceiptLoading
+                ? "Your transaction has been submitted. Waiting for on-chain confirmation."
+                : "Please confirm the transaction in your wallet. This registers your agent on the ERC-8004 Identity Registry on Base."}
             </p>
             {txHash && (
               <p className="mt-3 text-xs text-muted">
-                Tx submitted:{" "}
+                Tx:{" "}
                 <a href={`https://basescan.org/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="font-mono text-purple hover:underline">
                   {txHash.slice(0, 10)}...{txHash.slice(-8)}
                 </a>
@@ -520,7 +399,7 @@ export default function RegisterPage() {
         )}
 
         {/* Info box */}
-        <div className="mt-8 rounded-lg border border-dashed border-border p-5">
+        <div className="mt-8 rounded-lg border border-dashed border-border p-4 sm:p-5">
           <h3 className="mb-2 font-mono text-xs font-bold uppercase tracking-widest text-muted">What is ERC-8004?</h3>
           <p className="mb-3 text-xs leading-relaxed text-muted">
             ERC-8004 is the open standard for AI agent identity, co-authored with the Ethereum Foundation, Google, and Coinbase.
