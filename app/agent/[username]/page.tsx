@@ -417,8 +417,8 @@ export default async function AgentProfilePage({
                 {xVerified && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-[11px] font-medium text-blue-500">
                     <svg className="h-4 w-4" viewBox="0 0 22 22" fill="none">
-                      <path d="M20.396 11c.003-.476-.15-.95-.456-1.36l-1.21-1.607.24-1.992a2.16 2.16 0 0 0-.658-1.823 2.16 2.16 0 0 0-1.82-.665l-1.993.231L13.13 2.58a2.16 2.16 0 0 0-2.72-.001l-1.608 1.21-1.991-.24a2.16 2.16 0 0 0-1.824.658 2.16 2.16 0 0 0-.665 1.82l.232 1.994-1.204 1.609a2.16 2.16 0 0 0 0 2.72l1.21 1.607-.233 1.993a2.16 2.16 0 0 0 .659 1.823 2.16 2.16 0 0 0 1.82.664l1.992-.231 1.609 1.203a2.16 2.16 0 0 0 2.719 0l1.608-1.21 1.992.233a2.16 2.16 0 0 0 2.483-2.484l-.231-1.992 1.203-1.61c.307-.408.46-.883.457-1.359" fill="#1D9BF0"/>
-                      <path d="M9.585 14.427l-2.263-2.264a.625.625 0 0 1 .884-.884l1.82 1.82 4.932-4.932a.625.625 0 0 1 .884.884l-5.374 5.376a.625.625 0 0 1-.883 0z" fill="#fff"/>
+                      <path d="M20.396 11c.003-.476-.15-.95-.456-1.36l-1.21-1.607.24-1.992a2.16 2.16 0 0 0-.658-1.823 2.16 2.16 0 0 0-1.82-.665l-1.993.231L13.13 2.58a2.16 2.16 0 0 0-2.72-.001l-1.608 1.21-1.991-.24a2.16 2.16 0 0 0-1.824.658 2.16 2.16 0 0 0-.665 1.82l.232 1.994-1.204 1.609a2.16 2.16 0 0 0 0 2.72l1.21 1.607-.233 1.993a2.16 2.16 0 0 0 .659 1.823 2.16 2.16 0 0 0 1.82.664l1.992-.231 1.609 1.203a2.16 2.16 0 0 0 2.719 0l1.608-1.21 1.992.233a2.16 2.16 0 0 0 2.483-2.484l-.231-1.992 1.203-1.61c.307-.408.46-.883.457-1.359" fill="#1D9BF0" />
+                      <path d="M9.585 14.427l-2.263-2.264a.625.625 0 0 1 .884-.884l1.82 1.82 4.932-4.932a.625.625 0 0 1 .884.884l-5.374 5.376a.625.625 0 0 1-.883 0z" fill="#fff" />
                     </svg>
                     Verified
                   </span>
@@ -546,25 +546,8 @@ export default async function AgentProfilePage({
 
           {/* ========== Right Column (Sidebar) ========== */}
           <div className="space-y-4">
-            {/* Hire CTA Button */}
-            <a
-              href={
-                flaunchUrl
-                  ? flaunchUrl
-                  : `https://basescan.org/address/${walletAddress || ownerAddress}`
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full py-3.5 text-center font-bold text-white transition-all hover:brightness-110"
-              style={{
-                background:
-                  "linear-gradient(90deg, var(--orange) 0%, var(--orange-dark) 100%)",
-                clipPath:
-                  "polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))",
-              }}
-            >
-              Hire {name} →
-            </a>
+            {/* EigenCloud Verifiable Score */}
+            <VerifiableScore agentId={agentId} />
 
             {/* Stats Card */}
             <ClippedCard className="animate-fade-in-up animate-on-load animate-delay-100 p-5">
@@ -648,8 +631,8 @@ export default async function AgentProfilePage({
                     @{twitter}
                     {xVerified && (
                       <svg className="h-4 w-4 shrink-0" viewBox="0 0 22 22" fill="none">
-                        <path d="M20.396 11c.003-.476-.15-.95-.456-1.36l-1.21-1.607.24-1.992a2.16 2.16 0 0 0-.658-1.823 2.16 2.16 0 0 0-1.82-.665l-1.993.231L13.13 2.58a2.16 2.16 0 0 0-2.72-.001l-1.608 1.21-1.991-.24a2.16 2.16 0 0 0-1.824.658 2.16 2.16 0 0 0-.665 1.82l.232 1.994-1.204 1.609a2.16 2.16 0 0 0 0 2.72l1.21 1.607-.233 1.993a2.16 2.16 0 0 0 .659 1.823 2.16 2.16 0 0 0 1.82.664l1.992-.231 1.609 1.203a2.16 2.16 0 0 0 2.719 0l1.608-1.21 1.992.233a2.16 2.16 0 0 0 2.483-2.484l-.231-1.992 1.203-1.61c.307-.408.46-.883.457-1.359" fill="#1D9BF0"/>
-                        <path d="M9.585 14.427l-2.263-2.264a.625.625 0 0 1 .884-.884l1.82 1.82 4.932-4.932a.625.625 0 0 1 .884.884l-5.374 5.376a.625.625 0 0 1-.883 0z" fill="#fff"/>
+                        <path d="M20.396 11c.003-.476-.15-.95-.456-1.36l-1.21-1.607.24-1.992a2.16 2.16 0 0 0-.658-1.823 2.16 2.16 0 0 0-1.82-.665l-1.993.231L13.13 2.58a2.16 2.16 0 0 0-2.72-.001l-1.608 1.21-1.991-.24a2.16 2.16 0 0 0-1.824.658 2.16 2.16 0 0 0-.665 1.82l.232 1.994-1.204 1.609a2.16 2.16 0 0 0 0 2.72l1.21 1.607-.233 1.993a2.16 2.16 0 0 0 .659 1.823 2.16 2.16 0 0 0 1.82.664l1.992-.231 1.609 1.203a2.16 2.16 0 0 0 2.719 0l1.608-1.21 1.992.233a2.16 2.16 0 0 0 2.483-2.484l-.231-1.992 1.203-1.61c.307-.408.46-.883.457-1.359" fill="#1D9BF0" />
+                        <path d="M9.585 14.427l-2.263-2.264a.625.625 0 0 1 .884-.884l1.82 1.82 4.932-4.932a.625.625 0 0 1 .884.884l-5.374 5.376a.625.625 0 0 1-.883 0z" fill="#fff" />
                       </svg>
                     )}
                   </a>
@@ -693,9 +676,26 @@ export default async function AgentProfilePage({
               </div>
             </ClippedCard>
 
-            {/* EigenCloud Verifiable Score */}
-            <VerifiableScore agentId={agentId} />
 
+            {/* Hire CTA Button */}
+            <a
+              href={
+                flaunchUrl
+                  ? flaunchUrl
+                  : `https://basescan.org/address/${walletAddress || ownerAddress}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full py-3.5 text-center font-bold text-white transition-all hover:brightness-110"
+              style={{
+                background:
+                  "linear-gradient(90deg, var(--purple) 0%, var(--purple-dark) 100%)",
+                clipPath:
+                  "polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))",
+              }}
+            >
+              Buy ${name} →
+            </a>
             {/* API endpoint hint */}
             {/* <div className="animate-fade-in-up animate-on-load animate-delay-400 border border-dashed border-border p-4 text-center"
               style={{

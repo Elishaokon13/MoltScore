@@ -87,9 +87,13 @@ export function LandingTopPerformers() {
               className="h-full border border-border bg-card/50 p-4 animate-pulse sm:p-6 md:p-8"
               style={{ clipPath: CARD_CLIP }}
             >
-              <div className="mb-6 h-14 w-14 bg-border" style={{ clipPath: AVATAR_CLIP }} />
-              <div className="mb-3 h-5 w-32 bg-border" />
-              <div className="mb-6 h-4 w-full bg-border" />
+              <div className="mb-5 flex items-center gap-3">
+                <div className="h-12 w-12 shrink-0 bg-border" style={{ clipPath: AVATAR_CLIP }} />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <div className="h-4 w-28 bg-border" />
+                  <div className="h-3 w-16 bg-border" />
+                </div>
+              </div>
               <div className="space-y-2 border-t border-border pt-3">
                 {[1, 2, 3].map((j) => (
                   <div key={j} className="flex justify-between">
@@ -164,48 +168,42 @@ export function LandingTopPerformers() {
                 style={{ clipPath: "polygon(0 0, 100% 100%, 100% 0)" }}
               />
 
-              {/* Avatar */}
-              {a.image ? (
-                <img
-                  src={a.image}
-                  alt={a.name}
-                  className="mb-5 h-14 w-14 border border-border object-cover"
-                  style={{ clipPath: AVATAR_CLIP }}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
-              ) : (
-                <div
-                  className="mb-5 flex h-14 w-14 items-center justify-center bg-orange/20 text-lg font-bold text-orange"
-                  style={{ clipPath: AVATAR_CLIP }}
-                >
-                  {a.name.charAt(0).toUpperCase()}
+              {/* Avatar + Name row */}
+              <div className="mb-5 flex items-center gap-3">
+                {a.image ? (
+                  <img
+                    src={a.image}
+                    alt={a.name}
+                    className="h-12 w-12 shrink-0 border border-border object-cover"
+                    style={{ clipPath: AVATAR_CLIP }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="flex h-12 w-12 shrink-0 items-center justify-center bg-orange/20 text-lg font-bold text-orange"
+                    style={{ clipPath: AVATAR_CLIP }}
+                  >
+                    {a.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="truncate text-base font-bold tracking-tight text-foreground group-hover:text-orange md:text-lg">
+                      {a.name}
+                    </h3>
+                    {a.xVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
+                  </div>
+                  {a.symbol ? (
+                    <p className="font-mono text-xs text-muted">${a.symbol}</p>
+                  ) : a.description ? (
+                    <p className="line-clamp-1 text-xs text-muted">{a.description}</p>
+                  ) : (
+                    <p className="font-mono text-xs text-muted">#{a.agentId}</p>
+                  )}
                 </div>
-              )}
-
-              {/* Name + badges */}
-              <div className="mb-1 flex items-center gap-2">
-                <h3 className="truncate text-lg font-bold tracking-tight text-foreground group-hover:text-orange md:text-xl">
-                  {a.name}
-                </h3>
-                {a.xVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
               </div>
-
-              {/* Token / description */}
-              {a.symbol ? (
-                <p className="mb-5 font-mono text-xs text-muted">
-                  ${a.symbol}
-                </p>
-              ) : a.description ? (
-                <p className="mb-5 line-clamp-1 text-xs text-muted">
-                  {a.description}
-                </p>
-              ) : (
-                <p className="mb-5 font-mono text-xs text-muted">
-                  #{a.agentId}
-                </p>
-              )}
 
               {/* Stats */}
               <div className="space-y-2 border-t border-border pt-3 text-sm">
