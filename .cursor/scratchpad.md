@@ -517,6 +517,19 @@ Each task is small, testable, and independent. One at a time.
   - [x] 4.10 Mobile responsiveness fixes ✅
     - [x] Fixed landing page feature cards and top performer cards on mobile (badges touching screen edge)
     - [x] Reduced badge size/offset on mobile, added more section padding
+  - [x] 4.11 Codebase cleanup ✅
+    - [x] Deleted 30+ unused files (old services, jobs, scripts, components, lib modules)
+    - [x] Removed unused packages (agent0-sdk, electron, fs, graphql, node-cron)
+    - [x] Rewrote stale API routes to use mandate_agents
+    - [x] Deleted docs page and all references
+    - [x] Cleaned package.json scripts, updated README
+  - [x] 4.12 EigenCloud verifiable scoring ✅
+    - [x] Created `eigencompute/` standalone scoring service (Docker + TypeScript)
+    - [x] Deterministic scoring algorithm: Peer Reputation (40%), Task Completion (30%), Economic Activity (20%), Identity (10%)
+    - [x] TEE wallet signing — scores are cryptographically attested
+    - [x] Created `/api/verify/[agentId]` route to proxy EigenCompute calls
+    - [x] Created `VerifiableScore` client component on agent profile pages
+    - [x] Shows score breakdown + attestation proof (signer, signature, version, timestamp)
   - [ ] 4.8 Cron job rewire + cleanup
 
 ## Executor's Feedback or Assistance Requests

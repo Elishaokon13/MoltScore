@@ -17,7 +17,6 @@ function LogoIcon({ className }: { className?: string }) {
 const NAV_ITEMS = [
   { href: "/", label: "Home" },
   { href: "/agents", label: "Agents" },
-  { href: "/docs", label: "API Docs" },
 ];
 
 interface AppHeaderProps {

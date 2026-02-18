@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pool } from "@/lib/db";
 import { AppHeader } from "@/components/AppHeader";
+import { VerifiableScore } from "@/components/VerifiableScore";
 import { parseAgentUri } from "@/lib/agentMetadata";
 
 export const dynamic = "force-dynamic";
@@ -691,6 +692,9 @@ export default async function AgentProfilePage({
                 </div>
               </div>
             </ClippedCard>
+
+            {/* EigenCloud Verifiable Score */}
+            <VerifiableScore agentId={agentId} />
 
             {/* API endpoint hint */}
             {/* <div className="animate-fade-in-up animate-on-load animate-delay-400 border border-dashed border-border p-4 text-center"
