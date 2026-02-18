@@ -312,6 +312,16 @@ export default function AgentsPage() {
         </div>
         <div className="flex items-center gap-3">
           <ThemeToggle />
+          <Link
+            href="/register"
+            className="hidden px-3 py-1.5 text-sm font-bold text-white sm:block"
+            style={{
+              background: "linear-gradient(90deg, var(--orange) 0%, var(--orange-dark) 100%)",
+              clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
+            }}
+          >
+            Register Agent
+          </Link>
         </div>
       </header>
 

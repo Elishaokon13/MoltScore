@@ -1,8 +1,7 @@
 /**
- * POST /api/agent/register — Self-registration for agents.
- * Agents (or their operators) can submit a username + optional wallet to join the reputation system.
- * If already discovered, updates wallet. If already scored, returns current score.
- * Agent will be scored on the next cron cycle.
+ * POST /api/agent/register — Cache a newly registered agent into mandate_agents.
+ * Called after on-chain registration via the Agent0 SDK (ERC-8004).
+ * Upserts into mandate_agents so the agent appears immediately in the directory.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -11,12 +10,15 @@ import { pool } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 interface RegisterRequest {
-  username: string;
-  wallet?: string;
+  agentId: number;
+  owner: string;
+  name: string;
+  description?: string | null;
+  image?: string | null;
+  endpoint?: string | null;
 }
 
 const WALLET_REGEX = /^0x[a-fA-F0-9]{40}$/;
-const USERNAME_REGEX = /^[a-zA-Z0-9_.-]{1,100}$/;
 
 export async function POST(req: NextRequest) {
   let body: RegisterRequest;
@@ -29,73 +31,64 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const username = body.username?.trim();
-  const wallet = body.wallet?.trim() || null;
+  const { agentId, owner, name, description, image, endpoint } = body;
 
-  if (!username || !USERNAME_REGEX.test(username)) {
+  if (!agentId || typeof agentId !== "number" || agentId <= 0) {
     return NextResponse.json(
-      {
-        success: false,
-        error:
-          "Invalid username. Must be 1-100 characters, alphanumeric with _ . - allowed.",
-      },
+      { success: false, error: "Invalid agentId" },
       { status: 400 }
     );
   }
 
-  if (wallet && !WALLET_REGEX.test(wallet)) {
+  if (!owner || !WALLET_REGEX.test(owner)) {
     return NextResponse.json(
-      { success: false, error: "Invalid wallet address. Must be a valid 0x address." },
+      { success: false, error: "Invalid owner address" },
+      { status: 400 }
+    );
+  }
+
+  if (!name || typeof name !== "string" || name.trim().length === 0) {
+    return NextResponse.json(
+      { success: false, error: "Name is required" },
       { status: 400 }
     );
   }
 
   try {
-    // Upsert into discovered_agents
     await pool.query(
-      `INSERT INTO discovered_agents (username, wallet, last_seen_at)
-       VALUES ($1, $2, NOW())
-       ON CONFLICT (username) DO UPDATE SET
-         wallet = COALESCE($2, discovered_agents.wallet),
-         last_seen_at = NOW()`,
-      [username, wallet]
+      `INSERT INTO mandate_agents (
+        agent_id, owner_address, name, description, image_url, endpoint, discovered_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      ON CONFLICT (agent_id) DO UPDATE SET
+        name = COALESCE(EXCLUDED.name, mandate_agents.name),
+        description = COALESCE(EXCLUDED.description, mandate_agents.description),
+        image_url = COALESCE(EXCLUDED.image_url, mandate_agents.image_url),
+        endpoint = COALESCE(EXCLUDED.endpoint, mandate_agents.endpoint),
+        owner_address = COALESCE(EXCLUDED.owner_address, mandate_agents.owner_address)
+      `,
+      [
+        agentId,
+        owner,
+        name.trim(),
+        description?.trim() || null,
+        image?.trim() || null,
+        endpoint?.trim() || null,
+      ]
     );
 
-    // Check if already scored (return current score)
-    const scoredResult = await pool.query(
-      `SELECT score, tier, updated_at FROM scored_agents WHERE LOWER(username) = $1`,
-      [username.toLowerCase()]
-    );
-
-    if (scoredResult.rows.length > 0) {
-      const row = scoredResult.rows[0] as {
-        score: number;
-        tier: string;
-        updated_at: Date;
-      };
-      return NextResponse.json({
-        success: true,
-        status: "scored",
-        message: `Agent "${username}" is already scored. Score will update on next cycle.`,
-        currentScore: row.score,
-        currentTier: row.tier,
-        lastUpdated: new Date(row.updated_at).toISOString(),
-        profileUrl: `/api/agent/${encodeURIComponent(username)}`,
-      });
-    }
-
-    // Agent registered but not yet scored
     return NextResponse.json(
       {
         success: true,
         status: "registered",
-        message: `Agent "${username}" registered. Will be scored on the next cycle (runs every 15 minutes).`,
-        profileUrl: `/api/agent/${encodeURIComponent(username)}`,
+        agentId,
+        message: `Agent "${name}" cached. Will be fully indexed on next sync cycle.`,
+        profileUrl: `/agent/${agentId}`,
       },
       { status: 201 }
     );
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
+    console.error("[API /agent/register]", message);
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

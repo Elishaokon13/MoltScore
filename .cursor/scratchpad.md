@@ -504,6 +504,15 @@ Each task is small, testable, and independent. One at a time.
       - All cards use MoltScore clipped-edge card style
       - X/Twitter-style verified badge throughout
     - [x] Moltlaunch API integration (sync script + live gig/burn data fetch)
+  - [x] 4.9 Agent Registration via Agent0 SDK (ERC-8004) ✅
+    - [x] Installed `agent0-sdk` + `graphql` peer dependency
+    - [x] Built `/register` page with 4-step flow: wallet connect → form → on-chain tx → success
+    - [x] Uses viem directly (not full SDK) to call Identity Registry `register(agentURI)` on Base
+    - [x] ERC-6963 wallet discovery (inline, no SDK dependency issues)
+    - [x] After on-chain registration, caches agent in `mandate_agents` via `POST /api/agent/register`
+    - [x] Updated `/api/agent/register` to upsert into `mandate_agents` table
+    - [x] Added "Register Agent" CTA to agents directory header
+    - [x] Consistent MoltScore design (clipped-edge cards, step indicator, info box)
   - [ ] 4.8 Cron job rewire + cleanup
 
 ## Executor's Feedback or Assistance Requests
@@ -576,3 +585,7 @@ Each task is small, testable, and independent. One at a time.
 - JSX comments `{/* ... */}` can accidentally comment out JSX elements — always verify render output after large writes.
 - Agents directory route is `/agents` (not `/app`). All nav links across landing, docs, profile pages must be kept in sync when renaming routes.
 - Use the X/Twitter verified badge SVG (blue shield with checkmark, viewBox 0 0 22 22) instead of a simple checkmark for verified status.
+- agent0-sdk bundles Node-only modules (IPFS, graphql-request, electron-fetch) that break in Next.js client components. Use viem directly for on-chain calls + inline ERC-6963 discovery instead of importing the full SDK.
+- Next.js 16 uses Turbopack by default. Webpack `resolve.fallback` config doesn't work — use `turbopack: {}` in next.config.ts.
+- Identity Registry on Base: `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`. `register(string agentURI) returns (uint256 agentId)`.
+- ERC-6963 wallet discovery can be done inline without agent0-sdk: dispatch `eip6963:requestProvider` event, listen for `eip6963:announceProvider` events.
