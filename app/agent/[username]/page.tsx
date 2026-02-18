@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pool } from "@/lib/db";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { AppHeader } from "@/components/AppHeader";
 import { parseAgentUri } from "@/lib/agentMetadata";
 
 export const dynamic = "force-dynamic";
@@ -120,21 +120,6 @@ function ClippedCard({
       />
       {children}
     </div>
-  );
-}
-
-function LogoIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 32 32"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="2" />
-      <circle cx="16" cy="16" r="5" stroke="currentColor" strokeWidth="2" />
-      <circle cx="16" cy="16" r="2" fill="currentColor" />
-    </svg>
   );
 }
 
@@ -356,41 +341,7 @@ export default async function AgentProfilePage({
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* ==================== Header ==================== */}
-      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm md:px-8">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange/20">
-              <LogoIcon className="h-4 w-4 text-orange" />
-            </div>
-            <span className="hidden text-sm font-bold uppercase tracking-wide sm:inline">
-              MoltScore
-            </span>
-          </Link>
-          <nav className="flex items-center gap-1">
-            <Link
-              href="/"
-              className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground"
-            >
-              Home
-            </Link>
-            <Link
-              href="/agents"
-              className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground"
-            >
-              Agents
-            </Link>
-            <Link
-              href="/docs"
-              className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground"
-            >
-              API Docs
-            </Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-        </div>
-      </header>
+      <AppHeader activePath="/agents" ctaLabel="Register" ctaHref="/register" />
 
       {/* ==================== Main ==================== */}
       <main className="mx-auto max-w-6xl px-4 py-6 md:px-8">

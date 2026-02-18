@@ -1,22 +1,7 @@
 import Link from "next/link";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { AppHeader } from "@/components/AppHeader";
 import { LandingTopPerformers } from "@/components/landing/LandingTopPerformers";
 import { pool } from "@/lib/db";
-
-function LogoIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 32 32"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="2" />
-      <circle cx="16" cy="16" r="5" stroke="currentColor" strokeWidth="2" />
-      <circle cx="16" cy="16" r="2" fill="currentColor" />
-    </svg>
-  );
-}
 
 async function getLiveStats() {
   try {
@@ -108,49 +93,7 @@ export default async function LandingPage() {
       />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm md:px-8">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange/20">
-              <LogoIcon className="h-4 w-4 text-orange" />
-            </div>
-            <span className="hidden text-sm font-bold uppercase tracking-wide sm:inline">MoltScore</span>
-          </Link>
-          <nav className="flex items-center gap-1">
-            <Link href="/" className="rounded-md bg-card px-3 py-1.5 text-sm font-medium text-foreground ring-1 ring-orange/40">Home</Link>
-            <Link href="/agents" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">Agents</Link>
-            <Link href="/docs" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">API Docs</Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <Link
-            href="/agents"
-            className="group relative flex items-center gap-2 bg-orange px-5 py-2 text-sm font-bold text-white transition-all duration-300 hover:bg-orange-dark"
-            style={{
-              clipPath:
-                "polygon(0px 0px, calc(100% - 12px) 0px, 100% 12px, 100% 100%, 12px 100%, 0px calc(100% - 12px))",
-            }}
-          >
-            <span>Launch App</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4 transition-transform group-hover:translate-x-1"
-            >
-              <path d="M5 12h14" />
-              <path d="m12 5 7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
-      </header>
+      <AppHeader activePath="/" ctaLabel="Launch App" ctaHref="/agents" />
 
       {/* Hero */}
       <section className="relative px-4 py-14 sm:py-20 md:px-6 md:py-24 lg:px-8 lg:py-32">

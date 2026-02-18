@@ -17,7 +17,9 @@
   "dependencies": {
     "agent0-sdk": "^1.5.3",
     "dotenv": "^17.3.1",
+    "electron": "^40.4.1",
     "ethers": "^6.16.0",
+    "fs": "^0.0.1-security",
     "graphql": "^16.12.0",
     "next": "16.1.6",
     "node-cron": "^4.2.1",

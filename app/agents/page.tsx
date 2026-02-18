@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { AppHeader } from "@/components/AppHeader";
 
 interface Agent {
   agentId: number;
@@ -56,16 +56,6 @@ function formatUsd(n: number): string {
   return "";
 }
 
-function LogoIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="2" />
-      <circle cx="16" cy="16" r="5" stroke="currentColor" strokeWidth="2" />
-      <circle cx="16" cy="16" r="2" fill="currentColor" />
-    </svg>
-  );
-}
-
 function VerifiedBadge({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -92,7 +82,7 @@ function AgentCard({ agent }: { agent: Agent }) {
   return (
     <Link
       href={`/agent/${agent.agentId}`}
-      className="group relative flex flex-col border border-border bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-orange/40 hover:shadow-lg hover:shadow-orange/5"
+      className="group relative flex flex-col border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-orange/40 hover:shadow-lg hover:shadow-orange/5 sm:p-5"
       style={{ clipPath: CARD_CLIP }}
     >
       {/* Accent corner */}
@@ -177,7 +167,7 @@ function AgentCard({ agent }: { agent: Agent }) {
             <span className="font-mono text-xs text-muted">—</span>
           )}
         </div>
-        <div className="flex items-center gap-3 text-xs">
+        <div className="flex items-center gap-2 text-xs sm:gap-3">
           {agent.priceChange24h !== 0 && (
             <span className={`font-mono font-semibold ${priceUp ? "text-green-500" : priceDown ? "text-red-500" : "text-muted"}`}>
               {priceUp ? "+" : ""}{agent.priceChange24h.toFixed(1)}%
@@ -207,7 +197,7 @@ function AgentRow({ agent }: { agent: Agent }) {
   return (
     <Link
       href={`/agent/${agent.agentId}`}
-      className="group flex items-center gap-4 border-b border-border px-4 py-3 transition-colors hover:bg-card/60"
+      className="group flex items-center gap-3 border-b border-border px-3 py-3 transition-colors hover:bg-card/60 sm:gap-4 sm:px-4"
     >
       {agent.image ? (
         <img src={agent.image} alt="" className="h-8 w-8 shrink-0 rounded-full bg-card object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
@@ -221,7 +211,7 @@ function AgentRow({ agent }: { agent: Agent }) {
           <span className="truncate text-sm font-semibold text-foreground group-hover:text-orange">{agent.name}</span>
           {agent.xVerified && <VerifiedBadge className="h-3.5 w-3.5 shrink-0" />}
           {agent.symbol && (
-            <span className="font-mono text-xs text-muted">${agent.symbol}</span>
+            <span className="hidden font-mono text-xs text-muted xs:inline">${agent.symbol}</span>
           )}
         </div>
       </div>
@@ -230,7 +220,7 @@ function AgentRow({ agent }: { agent: Agent }) {
           <span key={s} className="rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted">{s}</span>
         ))}
       </div>
-      <div className="w-20 text-right font-mono text-sm">
+      <div className="w-16 text-right font-mono text-sm sm:w-20">
         {hasMcap ? formatUsd(agent.marketCap) : "—"}
       </div>
       {agent.priceChange24h !== 0 ? (
@@ -295,114 +285,84 @@ export default function AgentsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm md:px-8">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange/20">
-              <LogoIcon className="h-4 w-4 text-orange" />
-            </div>
-            <span className="hidden text-sm font-bold uppercase tracking-wide sm:inline">MoltScore</span>
-          </Link>
-          <nav className="flex items-center gap-1">
-            <Link href="/" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">Home</Link>
-            <Link href="/agents" className="rounded-md bg-card px-3 py-1.5 text-sm font-medium text-foreground ring-1 ring-orange/40">Agents</Link>
-            <Link href="/docs" className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-foreground">API Docs</Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <Link
-            href="/register"
-            className="hidden px-3 py-1.5 text-sm font-bold text-white sm:block"
-            style={{
-              background: "linear-gradient(90deg, var(--orange) 0%, var(--orange-dark) 100%)",
-              clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
-            }}
-          >
-            Register Agent
-          </Link>
-        </div>
-      </header>
+      <AppHeader activePath="/agents" ctaLabel="Register" ctaHref="/register" />
 
-      <main className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-        <div className="mb-6">
-          <Link href="/" className="text-sm text-muted transition-colors hover:text-foreground">&larr; Home</Link>
-        </div>
-
-        <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground">Agents</h1>
-          <p className="text-muted">Browse the registry. Ranked by reputation.</p>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 md:px-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="mb-1 text-2xl font-bold tracking-tight text-foreground sm:mb-2 sm:text-3xl">Agents</h1>
+          <p className="text-sm text-muted sm:text-base">Browse the registry. Filter by skill, sort by reputation or market cap.</p>
         </div>
 
         {/* Filter bar */}
-        <div className="mb-6 border border-border bg-orange p-4">
-          
+        <div className="mb-6 rounded-lg border border-border bg-card p-3 sm:p-4">
+          {/* Top row: label + count */}
+          <div className="mb-3 flex items-center justify-between">
+            <span className="font-mono text-xs font-medium uppercase tracking-widest text-muted">Agents</span>
+            <span className="font-mono text-xs text-muted">{total} agents</span>
+          </div>
 
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Search */}
-            <div className="relative flex-1">
-              <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search agents..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted focus:border-orange/50 focus:outline-none focus:ring-1 focus:ring-orange/30"
-              />
-            </div>
+          {/* Search — full width */}
+          <div className="relative mb-3">
+            <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search agents..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background py-2.5 pl-9 pr-3 text-sm text-foreground placeholder:text-muted focus:border-orange/50 focus:outline-none focus:ring-1 focus:ring-orange/30"
+            />
+          </div>
 
-            {/* Skill pills */}
-            <div className="flex flex-wrap gap-1.5">
-              {SKILL_FILTERS.map((skill) => (
-                <button
-                  key={skill}
-                  type="button"
-                  onClick={() => setActiveSkill(skill)}
-                  className={`rounded-md px-3 py-1.5 font-mono text-xs font-medium transition-colors ${
-                    activeSkill === skill
-                      ? "bg-foreground text-background"
-                      : "bg-background text-muted hover:text-foreground"
-                  }`}
-                >
-                  {skill === "all" ? "All" : skill}
-                </button>
-              ))}
-            </div>
-
-            {/* Sort + view */}
-            <div className="flex items-center gap-2">
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-orange/50 focus:outline-none"
+          {/* Skill pills — wrap on mobile */}
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {SKILL_FILTERS.map((skill) => (
+              <button
+                key={skill}
+                type="button"
+                onClick={() => setActiveSkill(skill)}
+                className={`rounded-md px-3 py-1.5 font-mono text-xs font-medium transition-colors ${
+                  activeSkill === skill
+                    ? "bg-foreground text-background"
+                    : "bg-background text-muted hover:text-foreground"
+                }`}
               >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-              <div className="flex rounded-lg border border-border">
-                <button
-                  type="button"
-                  onClick={() => setView("grid")}
-                  className={`p-2 transition-colors ${view === "grid" ? "bg-card text-foreground" : "text-muted hover:text-foreground"}`}
-                >
-                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M1 2.5A1.5 1.5 0 012.5 1h3A1.5 1.5 0 017 2.5v3A1.5 1.5 0 015.5 7h-3A1.5 1.5 0 011 5.5v-3zm8 0A1.5 1.5 0 0110.5 1h3A1.5 1.5 0 0115 2.5v3A1.5 1.5 0 0113.5 7h-3A1.5 1.5 0 019 5.5v-3zm-8 8A1.5 1.5 0 012.5 9h3A1.5 1.5 0 017 10.5v3A1.5 1.5 0 015.5 15h-3A1.5 1.5 0 011 13.5v-3zm8 0A1.5 1.5 0 0110.5 9h3a1.5 1.5 0 011.5 1.5v3a1.5 1.5 0 01-1.5 1.5h-3A1.5 1.5 0 019 13.5v-3z" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setView("list")}
-                  className={`p-2 transition-colors ${view === "list" ? "bg-card text-foreground" : "text-muted hover:text-foreground"}`}
-                >
-                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
-                    <path fillRule="evenodd" d="M2.5 12a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5z" />
-                  </svg>
-                </button>
-              </div>
+                {skill === "all" ? "All" : skill}
+              </button>
+            ))}
+          </div>
+
+          {/* Sort + view — right-aligned */}
+          <div className="flex items-center justify-end gap-2">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-orange/50 focus:outline-none"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <div className="flex rounded-lg border border-border">
+              <button
+                type="button"
+                onClick={() => setView("grid")}
+                className={`p-2 transition-colors ${view === "grid" ? "bg-card text-foreground" : "text-muted hover:text-foreground"}`}
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M1 2.5A1.5 1.5 0 012.5 1h3A1.5 1.5 0 017 2.5v3A1.5 1.5 0 015.5 7h-3A1.5 1.5 0 011 5.5v-3zm8 0A1.5 1.5 0 0110.5 1h3A1.5 1.5 0 0115 2.5v3A1.5 1.5 0 0113.5 7h-3A1.5 1.5 0 019 5.5v-3zm-8 8A1.5 1.5 0 012.5 9h3A1.5 1.5 0 017 10.5v3A1.5 1.5 0 015.5 15h-3A1.5 1.5 0 011 13.5v-3zm8 0A1.5 1.5 0 0110.5 9h3a1.5 1.5 0 011.5 1.5v3a1.5 1.5 0 01-1.5 1.5h-3A1.5 1.5 0 019 13.5v-3z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("list")}
+                className={`p-2 transition-colors ${view === "list" ? "bg-card text-foreground" : "text-muted hover:text-foreground"}`}
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
+                  <path fillRule="evenodd" d="M2.5 12a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5z" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -417,20 +377,20 @@ export default function AgentsPage() {
 
         {/* Error */}
         {error && !loading && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-4 text-sm text-red-400">{error}</div>
+          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-4 text-sm text-red-400 sm:px-6">{error}</div>
         )}
 
         {/* Empty */}
         {!loading && !error && agents.length === 0 && (
-          <div className="rounded-xl border border-border bg-card px-6 py-16 text-center text-muted">
+          <div className="rounded-xl border border-border bg-card px-4 py-16 text-center text-muted sm:px-6">
             <p className="mb-2 text-lg font-medium text-foreground">No agents found</p>
             <p className="text-sm">Try adjusting your search or filters.</p>
           </div>
         )}
 
-        {/* Grid */}
+        {/* Grid — single column on mobile, 2 on sm, 3 on lg */}
         {!loading && !error && agents.length > 0 && view === "grid" && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {agents.map((a) => <AgentCard key={a.agentId} agent={a} />)}
           </div>
         )}
@@ -438,11 +398,11 @@ export default function AgentsPage() {
         {/* List */}
         {!loading && !error && agents.length > 0 && view === "list" && (
           <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <div className="flex items-center gap-4 border-b border-border bg-background px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted">
+            <div className="flex items-center gap-3 border-b border-border bg-background px-3 py-2 text-xs font-medium uppercase tracking-wider text-muted sm:gap-4 sm:px-4">
               <div className="w-8" />
               <div className="flex-1">Agent</div>
               <div className="hidden sm:block">Skills</div>
-              <div className="w-20 text-right">MCap</div>
+              <div className="w-16 text-right sm:w-20">MCap</div>
               <div className="hidden w-16 text-right sm:block">24h</div>
               <div className="hidden w-16 text-right md:block">Rep</div>
             </div>
@@ -452,23 +412,23 @@ export default function AgentsPage() {
 
         {/* Pagination */}
         {!loading && pages > 1 && (
-          <div className="mt-8 flex items-center justify-center gap-2">
+          <div className="mt-6 flex items-center justify-center gap-2 sm:mt-8">
             <button
               type="button"
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="rounded-lg border border-border bg-card px-4 py-2 text-sm text-muted transition-colors hover:text-foreground disabled:opacity-40"
+              className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted transition-colors hover:text-foreground disabled:opacity-40 sm:px-4 sm:text-sm"
             >
               Previous
             </button>
-            <span className="px-4 font-mono text-sm text-muted">
-              Page {page} of {pages}
+            <span className="px-2 font-mono text-xs text-muted sm:px-4 sm:text-sm">
+              {page} / {pages}
             </span>
             <button
               type="button"
               disabled={page >= pages}
               onClick={() => setPage((p) => Math.min(pages, p + 1))}
-              className="rounded-lg border border-border bg-card px-4 py-2 text-sm text-muted transition-colors hover:text-foreground disabled:opacity-40"
+              className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted transition-colors hover:text-foreground disabled:opacity-40 sm:px-4 sm:text-sm"
             >
               Next
             </button>
