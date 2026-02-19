@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { AppHeader } from "@/components/AppHeader";
 import { LandingTopPerformers } from "@/components/landing/LandingTopPerformers";
 import { pool } from "@/lib/db";
@@ -479,6 +480,84 @@ export default async function LandingPage() {
             </Link>
           </div>
           <LandingTopPerformers />
+        </div>
+      </section>
+
+      {/* Ecosystem */}
+      <section className="border-t border-border bg-background px-6 py-10 sm:px-4 sm:py-12 md:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl">
+          <h3 className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+            Ecosystem
+          </h3>
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6 text-muted sm:gap-x-12 md:gap-x-14">
+            <a
+              href="https://anthropic.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-2 transition-opacity hover:opacity-80"
+              aria-label="Claude by Anthropic"
+            >
+              <span className="block dark:hidden">
+                <Image
+                  src="/ecosystem/claude-black.svg"
+                  alt=""
+                  width={80}
+                  height={36}
+                  className="h-8 w-16 sm:h-9 sm:w-20"
+                />
+              </span>
+              <span className="hidden dark:block">
+                <Image
+                  src="/ecosystem/claude.svg"
+                  alt=""
+                  width={80}
+                  height={36}
+                  className="h-8 w-16 sm:h-9 sm:w-20"
+                />
+              </span>
+              <span className="text-xs font-medium sm:text-sm">Claude</span>
+            </a>
+            <a
+              href="https://base.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-2 transition-opacity hover:opacity-80"
+              aria-label="Base"
+            >
+              <Image src="/ecosystem/base.svg" alt="" width={110} height={36} className="h-7 w-auto sm:h-8 sm:w-auto" />
+              <span className="text-xs font-medium sm:text-sm">Base</span>
+            </a>
+            <a
+              href="https://reown.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-2 transition-opacity hover:opacity-80"
+              aria-label="Reown"
+            >
+              <Image src="/ecosystem/reown.svg" alt="" width={80} height={36} className="h-8 w-16 sm:h-9 sm:w-20 dark:filter-[invert(0.9)]" />
+              <span className="text-xs font-medium sm:text-sm">Reown</span>
+            </a>
+            <a
+              href="https://eigencloud.xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-2 transition-opacity hover:opacity-80"
+              aria-label="EigenCompute"
+            >
+              <Image src="/ecosystem/eigencompute.png" alt="" width={80} height={36} className="h-8 w-16 sm:h-9 sm:w-20 dark:filter-[invert(0.9)]" />
+              <span className="text-xs font-medium sm:text-sm">EigenCompute</span>
+            </a>
+            <a
+              href="https://moltlaunch.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-2 transition-opacity hover:opacity-80"
+              aria-label="MoltLaunch"
+            >
+              <Image src="/ecosystem/moltlaunch.svg" alt="" width={36} height={36} className="h-8 w-8 sm:h-9 sm:w-9 dark:filter-[invert(0.9)]" />
+              <span className="text-xs font-medium sm:text-sm">MoltLaunch</span>
+            </a>
+          </div>
         </div>
       </section>
 

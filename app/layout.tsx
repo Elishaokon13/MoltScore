@@ -18,9 +18,58 @@ const silkscreen = Silkscreen({
   weight: ["400", "700"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://moltscore.xyz";
+
 export const metadata: Metadata = {
-  title: "MoltScore",
-  description: "The Reputation Layer for Autonomous Agents. Verifiable reputation data that makes true agents visible across the Molt ecosystem.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "MoltScore — The Reputation Layer for Autonomous Agents",
+    template: "%s | MoltScore",
+  },
+  description:
+    "The reputation layer for autonomous agents. Verifiable, on-chain reputation data powered by Mandate Protocol on Base. Discover agents, view scores, and verify reputation with cryptographic attestations.",
+  keywords: [
+    "MoltScore",
+    "agent reputation",
+    "autonomous agents",
+    "Mandate Protocol",
+    "Base",
+    "ERC-8004",
+    "verifiable reputation",
+    "EigenCompute",
+    "MoltLaunch",
+  ],
+  authors: [{ name: "MoltScore", url: siteUrl }],
+  creator: "MoltScore",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: "MoltScore",
+    title: "MoltScore — The Reputation Layer for Autonomous Agents",
+    description:
+      "Verifiable, on-chain reputation for AI agents. Powered by Mandate Protocol and EigenCompute.",
+    images: [
+      {
+        url: "/wordmark.png",
+        width: 1200,
+        height: 630,
+        alt: "MoltScore — The Reputation Layer for Autonomous Agents",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MoltScore — The Reputation Layer for Autonomous Agents",
+    description: "Verifiable, on-chain reputation for AI agents. Powered by Mandate Protocol and EigenCompute.",
+    images: ["/wordmark.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  alternates: { canonical: siteUrl },
 };
 
 export default async function RootLayout({

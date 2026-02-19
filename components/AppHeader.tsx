@@ -1,18 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-
-function LogoIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="2" />
-      <circle cx="16" cy="16" r="5" stroke="currentColor" strokeWidth="2" />
-      <circle cx="16" cy="16" r="2" fill="currentColor" />
-    </svg>
-  );
-}
 
 const NAV_ITEMS = [
   { href: "/", label: "Home" },
@@ -31,12 +22,16 @@ export function AppHeader({ activePath = "/", ctaLabel = "Launch App", ctaHref =
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
       <div className="flex h-14 items-center justify-between px-4 md:px-8">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange/20">
-            <LogoIcon className="h-4 w-4 text-orange" />
-          </div>
-          <span className="text-sm font-bold uppercase tracking-wide">MoltScore</span>
+        {/* Logo — wordmark scales for mobile and desktop */}
+        <Link href="/" className="flex shrink-0 items-center">
+          <Image
+            src="/logo.png"
+            alt="MoltScore"
+            width={200}
+            height={40}
+            priority
+            className="h-10 w-auto max-w-[130px] object-contain object-left sm:h-8 sm:max-w-[160px] md:h-9 md:max-w-none"
+          />
         </Link>
 
         {/* Desktop nav */}
