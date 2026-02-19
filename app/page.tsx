@@ -486,9 +486,19 @@ export default async function LandingPage() {
       {/* Ecosystem */}
       <section className="border-t border-border bg-background px-6 py-10 sm:px-4 sm:py-12 md:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl">
-          <h3 className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-            Ecosystem
-          </h3>
+        <h2 className="animate-fade-in-up animate-on-load mb-8 pb-6 text-center text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
+            <span
+              className="inline-block bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(90deg, var(--orange))",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Ecosysytem
+            </span>
+          </h2>
           <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6 text-muted sm:gap-x-12 md:gap-x-14">
             <a
               href="https://anthropic.com"
