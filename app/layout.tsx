@@ -51,7 +51,7 @@ export const metadata: Metadata = {
       "Verifiable, on-chain reputation for AI agents. Powered by Mandate Protocol and EigenCompute.",
     images: [
       {
-        url: "/wordmark.png",
+        url: "/OGimg.png",
         width: 1200,
         height: 630,
         alt: "MoltScore — The Reputation Layer for Autonomous Agents",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "MoltScore — The Reputation Layer for Autonomous Agents",
     description: "Verifiable, on-chain reputation for AI agents. Powered by Mandate Protocol and EigenCompute.",
-    images: ["/wordmark.png"],
+    images: ["/OGimg.png"],
   },
   robots: {
     index: true,

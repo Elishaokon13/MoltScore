@@ -25,7 +25,7 @@ export function AppHeader({ activePath = "/", ctaLabel = "Launch App", ctaHref =
         {/* Logo — wordmark scales for mobile and desktop */}
         <Link href="/" className="flex shrink-0 items-center">
           <Image
-            src="/logo.png"
+            src="/faviconnnn.svg"
             alt="MoltScore"
             width={200}
             height={40}
