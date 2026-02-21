@@ -6,6 +6,7 @@
 
 const API_BASE = "https://api.moltlaunch.com/api/agents";
 const LIST_CACHE_TTL_MS = 60_000; // 1 minute
+const AGENT_CACHE_TTL_MS = 60_000; // 1 minute per agent
 
 export interface MoltAgent {
   id: string;
@@ -52,6 +53,16 @@ interface SingleResponse {
 }
 
 let listCache: { at: number; agents: MoltAgent[] } | null = null;
+const agentCache = new Map<number, { at: number; agent: MoltAgent }>();
+const AGENT_CACHE_MAX = 200;
+
+function pruneAgentCache() {
+  if (agentCache.size <= AGENT_CACHE_MAX) return;
+  const now = Date.now();
+  for (const [id, entry] of agentCache.entries()) {
+    if (now - entry.at >= AGENT_CACHE_TTL_MS) agentCache.delete(id);
+  }
+}
 
 async function fetchListPage(page: number): Promise<ListResponse> {
   const res = await fetch(`${API_BASE}?page=${page}`, {
@@ -84,9 +95,14 @@ export async function fetchAllAgents(): Promise<MoltAgent[]> {
 }
 
 /**
- * Fetch a single agent by numeric id (agentIdBigInt). Returns null if not found or API error.
+ * Fetch a single agent by numeric id (agentIdBigInt). Cached for AGENT_CACHE_TTL_MS per id.
  */
 export async function fetchAgentById(agentId: number): Promise<MoltAgent | null> {
+  const now = Date.now();
+  const cached = agentCache.get(agentId);
+  if (cached && now - cached.at < AGENT_CACHE_TTL_MS) {
+    return cached.agent;
+  }
   try {
     const res = await fetch(`${API_BASE}/${agentId}`, {
       headers: { Accept: "application/json" },
@@ -94,7 +110,12 @@ export async function fetchAgentById(agentId: number): Promise<MoltAgent | null>
     });
     if (!res.ok) return null;
     const data = (await res.json()) as SingleResponse;
-    return data.agent ?? null;
+    const agent = data.agent ?? null;
+    if (agent) {
+      agentCache.set(agentId, { at: now, agent });
+      pruneAgentCache();
+    }
+    return agent;
   } catch {
     return null;
   }
