@@ -84,11 +84,11 @@ export function VerifiableScore({ agentId }: { agentId: number }) {
         <p className="mb-4 text-[11px] leading-relaxed text-muted">
           Score computed in a TEE (Trusted Execution Environment) on EigenCompute.
           Cryptographically attested — the exact code that produced this score is verifiable.
-          {data?.reputationSource && (
+          {/* {data?.reputationSource && (
             <span className="mt-2 block font-mono text-[10px] text-muted">
               Reputation source: {data.reputationSource === "onchain" ? "on-chain (Mandate)" : "MoltLaunch API"}
             </span>
-          )}
+          )} */}
         </p>
 
         {!data && !loading && !error && (
