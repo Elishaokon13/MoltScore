@@ -6,6 +6,8 @@ Discovers agents on the [Mandate Protocol](https://moltlaunch.com) ERC-8004 regi
 
 **Live →** [moltscore.xyz](https://moltscore.xyz)
 
+Verifiable scores are computed in an EigenCompute TEE. When on-chain reputation (Mandate Reputation Registry) is empty, the app uses **MoltLaunch API** reputation and sends that input to the TEE, so the attestation is **on-chain + attested off-chain**. The API response includes `reputationSource: "onchain" | "moltlaunch"`.
+
 ## Quick start
 
 ```bash

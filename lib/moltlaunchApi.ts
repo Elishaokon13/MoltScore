@@ -96,6 +96,7 @@ export async function fetchAllAgents(): Promise<MoltAgent[]> {
 
 /**
  * Fetch a single agent by numeric id (agentIdBigInt). Cached for AGENT_CACHE_TTL_MS per id.
+ * Tries numeric id first, then hex (e.g. 0x644) in case the API expects hex.
  */
 export async function fetchAgentById(agentId: number): Promise<MoltAgent | null> {
   const now = Date.now();
@@ -103,14 +104,21 @@ export async function fetchAgentById(agentId: number): Promise<MoltAgent | null>
   if (cached && now - cached.at < AGENT_CACHE_TTL_MS) {
     return cached.agent;
   }
-  try {
-    const res = await fetch(`${API_BASE}/${agentId}`, {
+  const tryFetch = async (id: string): Promise<MoltAgent | null> => {
+    const res = await fetch(`${API_BASE}/${id}`, {
       headers: { Accept: "application/json" },
       next: { revalidate: 0 },
     });
     if (!res.ok) return null;
     const data = (await res.json()) as SingleResponse;
-    const agent = data.agent ?? null;
+    return data.agent ?? null;
+  };
+  try {
+    let agent = await tryFetch(String(agentId));
+    if (!agent && agentId > 0) {
+      const hexId = "0x" + agentId.toString(16);
+      agent = await tryFetch(hexId);
+    }
     if (agent) {
       agentCache.set(agentId, { at: now, agent });
       pruneAgentCache();

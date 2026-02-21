@@ -32,7 +32,7 @@ const IDENTITY_ABI = [
 
 const REPUTATION_ABI = [
   "function getClients(uint256 agentId) view returns (address[])",
-  "function getSummary(uint256 agentId, address[] clients, string tag1, string tag2) view returns (uint256 count, int256 summaryValue, uint8 summaryValueDecimals)",
+  "function getSummary(uint256 agentId, address[] clientAddresses, string tag1, string tag2) view returns (uint64 count, int128 summaryValue, uint8 summaryValueDecimals)",
 ];
 
 /* ---------- Types ---------- */
@@ -152,7 +152,9 @@ export async function fetchScoreInput(
     // Not found
   }
 
-  // Fetch reputation data
+  // Fetch reputation data from Mandate Protocol's ON-CHAIN Reputation Registry only.
+  // MoltLaunch API reputation (rep_count, rep_summary_value) comes from their backend;
+  // if that data is not written to this contract, getClients will be empty and we get 0/40.
   let feedbackCount = 0;
   let feedbackValue = 0;
 
@@ -168,8 +170,8 @@ export async function fetchScoreInput(
       feedbackCount = Number(count);
       feedbackValue = Number(summaryValue);
     }
-  } catch {
-    // No reputation data
+  } catch (e) {
+    // No reputation data or RPC error (e.g. agent not in this registry)
   }
 
   // Task completion & economic activity: Escrow (MandateEscrowV5) data is NOT yet wired.

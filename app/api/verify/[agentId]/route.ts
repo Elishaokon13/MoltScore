@@ -1,9 +1,12 @@
 /**
  * GET /api/verify/:agentId — Get a verifiable score from EigenCompute TEE.
- * Calls the EigenCompute scoring service and returns the signed attestation.
+ * Builds score input with on-chain data; when on-chain reputation is empty,
+ * uses MoltLaunch API (off-chain) so the attestation is "on-chain + attested off-chain".
+ * POSTs the input to the TEE so the score reflects both sources.
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { buildScoreInputForTee } from "@/services/verifiableScoreInput";
 
 export const dynamic = "force-dynamic";
 
@@ -32,8 +35,12 @@ export async function GET(
   }
 
   try {
-    const res = await fetch(`${EIGENCOMPUTE_URL}/score/${id}`, {
-      headers: { Accept: "application/json" },
+    const { input, reputationSource } = await buildScoreInputForTee(id);
+
+    const res = await fetch(`${EIGENCOMPUTE_URL}/score`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(input),
       signal: AbortSignal.timeout(15000),
     });
 
@@ -46,7 +53,11 @@ export async function GET(
     }
 
     const data = await res.json();
-    return NextResponse.json({ success: true, ...data });
+    return NextResponse.json({
+      success: true,
+      reputationSource,
+      ...data,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 502 });
