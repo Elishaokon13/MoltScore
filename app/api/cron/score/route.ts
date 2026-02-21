@@ -1,12 +1,14 @@
 /**
- * POST /api/cron/score — Trigger agent data sync from Moltlaunch.
- * Called by GitHub Actions every 15 minutes.
+ * POST /api/cron/score — Sync agent data from MoltLaunch API into DB.
+ * Fetches all pages from api.moltlaunch.com/api/agents and upserts into mandate_agents.
+ * Call on a schedule (e.g. Vercel Cron every 15 min) or manually with CRON_SECRET.
  *
  * Protected by CRON_SECRET.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { runMoltlaunchSync } from "@/services/moltlaunchSync";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -32,25 +34,26 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    console.info(LOG, "sync cycle started");
+    console.info(LOG, "MoltLaunch sync started");
 
-    // Count current agents in DB
-    const countResult = await pool.query("SELECT COUNT(*) as cnt FROM mandate_agents");
-    const agentCount = parseInt(countResult.rows[0]?.cnt ?? "0", 10);
+    const result = await runMoltlaunchSync(pool);
 
     const elapsedMs = Date.now() - startMs;
     const summary = {
       success: true,
       elapsedMs,
-      agentCount,
-      message: "Sync cycle complete. Run `tsx scripts/syncMoltlaunch.ts` for full Moltlaunch sync.",
+      totalFromApi: result.totalFromApi,
+      totalPages: result.totalPages,
+      synced: result.synced,
+      errors: result.errors,
+      dbCount: result.dbCount,
     };
 
-    console.info(LOG, "cycle complete", summary);
+    console.info(LOG, "sync complete", summary);
     return NextResponse.json(summary);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
-    console.error(LOG, "cycle failed", { error: message });
+    console.error(LOG, "sync failed", { error: message });
     return NextResponse.json(
       { success: false, error: message, elapsedMs: Date.now() - startMs },
       { status: 500 }
