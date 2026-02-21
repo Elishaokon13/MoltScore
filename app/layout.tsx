@@ -5,6 +5,7 @@ import { cookieToInitialState } from "wagmi";
 import { wagmiConfig } from "@/config/reown";
 import { Providers } from "./providers";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next"
 
 const pixelifySans = Pixelify_Sans({
   variable: "--font-pixelify-sans",
@@ -93,6 +94,7 @@ export default async function RootLayout({
       <body className={`${pixelifySans.className} antialiased`}>
         <Providers initialState={cookieToInitialState(wagmiConfig, (await headers()).get("cookie") ?? undefined)}>
           {children}
+          <Analytics />
         </Providers>
       </body>
     </html>
