@@ -9,7 +9,6 @@
     "lint": "eslint",
     "db:init": "tsx scripts/initDb.ts",
     "sync": "tsx scripts/syncMoltlaunch.ts",
-    "sync:agents": "tsx scripts/syncMoltlaunchAgents.ts",
     "sync:metadata": "tsx scripts/cacheAgentMetadata.ts"
   },
   "dependencies": {

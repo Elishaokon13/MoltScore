@@ -20,6 +20,15 @@ Anyone can verify the attestation to confirm the score was computed by this exac
 | Economic Activity | 20% | Total escrow value transacted |
 | Identity Completeness | 10% | Metadata, skills, verification |
 
+## Current limitations
+
+**Task completion (30%) and economic activity (20%) are not yet wired.** The algorithm supports them, but `fetchScoreInput` does not read from the Escrow contract (MandateEscrowV5 is unverified; per-agent mandate data would require event indexing or an indexer). So in practice the TEE score is driven by:
+
+- **Peer reputation** — from the Reputation Registry (on-chain reviews), when present
+- **Identity completeness** — metadata, skills, owner verification
+
+To add task completion and economic activity, implement escrow event indexing (or integrate with an indexer) and pass `completedMandates`, `totalMandates`, and `totalEscrowWei` into the scoring input.
+
 ## API
 
 | Endpoint | Method | Description |

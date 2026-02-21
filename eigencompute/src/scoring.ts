@@ -172,8 +172,10 @@ export async function fetchScoreInput(
     // No reputation data
   }
 
-  // Note: Escrow data requires scanning events for the agent's wallet.
-  // For now, use placeholder values that can be enriched by the MoltScore sync pipeline.
+  // Task completion & economic activity: Escrow (MandateEscrowV5) data is NOT yet wired.
+  // The contract is unverified; fetching mandates per agent requires event indexing or a
+  // dedicated indexer. Until then, completedMandates/totalMandates/totalEscrowWei are 0,
+  // so the score only reflects: (1) Peer reputation from Reputation Registry, (2) Identity completeness.
   return {
     agentId,
     feedbackCount,
