@@ -85,6 +85,7 @@ export default async function RootLayout({
       className={`${pixelifySans.variable} ${silkscreen.variable}`}
     >
       <head>
+        <meta name="base:app_id" content="69ad6df0f6467f4d78d3028b" />
       <meta name="virtual-protocol-site-verification" content="77f59c8d38f49c0af5651934179e428e" />
         <script
           dangerouslySetInnerHTML={{
